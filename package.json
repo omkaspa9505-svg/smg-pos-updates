@@ -1,8 +1,7 @@
 {
   "name": "smg-pos",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "version": "1.0.25",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -14,9 +13,22 @@
   "build": {
     "appId": "com.smg.pos",
     "productName": "SMG POS",
+    "asarUnpack": [
+      "node_modules/whatsapp-web.js/**/*",
+      "node_modules/puppeteer-core/**/*"
+    ],
     "directories": {
-      "output": "release"
+      "output": "build-output"
     },
+    "extraResources": [
+      {
+        "from": "credentials.json",
+        "to": "credentials.json",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "files": [
       "dist/**/*",
       "dist-electron/**/*"
@@ -45,6 +57,7 @@
     "react": "^19.2.6",
     "react-barcode": "^1.6.1",
     "react-dom": "^19.2.6",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.17.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^6.0.1",
@@ -57,6 +70,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
+    "axios": "^1.17.0",
     "electron": "^42.3.3",
     "electron-builder": "^26.15.2",
     "eslint": "^10.3.0",
