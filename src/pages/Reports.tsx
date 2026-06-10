@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, DollarSign, Target, Package } from 'lucide-react'
+import { TrendingUp, DollarSign, Target, Package, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function Reports() {
   const [sales, setSales] = useState<any[]>([])
-  
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [saleToDelete, setSaleToDelete] = useState<number | null>(null)
+  const [password, setPassword] = useState('')
+
   useEffect(() => {
     loadSales()
   }, [])
@@ -12,6 +16,29 @@ export default function Reports() {
     if ((window as any).api) {
       const data = await (window as any).api.getSales()
       setSales(data || [])
+    }
+  }
+
+  const handleDeleteClick = (id: number) => {
+    setSaleToDelete(id)
+    setPassword('')
+    setDeleteModalOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (password === "4444") {
+      if ((window as any).api && saleToDelete !== null) {
+        const success = await (window as any).api.deleteSale(saleToDelete)
+        if (success) {
+          toast.success("Sale deleted successfully.")
+          loadSales()
+        } else {
+          toast.error("Failed to delete sale.")
+        }
+      }
+      setDeleteModalOpen(false)
+    } else {
+      toast.error("Incorrect password.")
     }
   }
 
@@ -36,7 +63,7 @@ export default function Reports() {
   const growth = lastMonthTotal === 0 ? 100 : Math.round(((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100)
 
   return (
-    <div className="p-8 h-full overflow-auto">
+    <div className="p-8 h-full overflow-auto relative">
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Performance Dashboard</h1>
       
       <div className="grid grid-cols-3 gap-6 mb-8">
@@ -81,13 +108,14 @@ export default function Reports() {
               <th className="p-4 font-medium">Date</th>
               <th className="p-4 font-medium">Customer</th>
               <th className="p-4 font-medium">Subtotal</th>
-              <th className="p-4 font-medium">GST (3%)</th>
+              <th className="p-4 font-medium">CGST & SGST (3%)</th>
               <th className="p-4 font-medium">Grand Total</th>
               <th className="p-4 font-medium">Payment</th>
+              <th className="p-4 font-medium w-10 text-center">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {sales.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-gray-400">No sales recorded yet.</td></tr>}
+            {sales.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-gray-400">No sales recorded yet.</td></tr>}
             {sales.map(s => (
               <tr key={s.id} className="hover:bg-gray-50">
                 <td className="p-4 font-mono font-bold text-gray-800">{s.invoice_number}</td>
@@ -99,11 +127,44 @@ export default function Reports() {
                 <td className="p-4">
                   <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase">{s.payment_mode}</span>
                 </td>
+                <td className="p-4 text-center">
+                  <button
+                    onClick={() => handleDeleteClick(s.id)}
+                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center justify-center w-full"
+                    title="Delete Sale"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setDeleteModalOpen(false)}>
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">Admin Authorization</h3>
+            <p className="text-sm text-gray-500 mb-4">Please enter the admin password to delete this invoice. This will return the items to stock.</p>
+            <input 
+              type="password" 
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 mb-6 font-mono tracking-widest text-lg"
+              placeholder="••••"
+              autoFocus
+              onKeyDown={e => { if (e.key === 'Enter') confirmDelete() }}
+            />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setDeleteModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-bold">Cancel</button>
+              <button onClick={confirmDelete} className="px-4 py-2 bg-red-500 text-white hover:bg-red-600 rounded-lg font-bold flex items-center gap-2 shadow-sm">
+                <Trash2 size={16} /> Delete Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

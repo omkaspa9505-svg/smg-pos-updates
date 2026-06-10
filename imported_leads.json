@@ -1,0 +1,643 @@
+[
+  {
+    "scheme_id": "SMG-0001",
+    "name": "SUBHA SREE",
+    "mobile": "9390180686",
+    "scheme_type": "GOLD ACCUMULATION",
+    "enrolment_date": "06-Jun-2026",
+    "base_amount": "10000.00",
+    "staff_name": "MOHIT",
+    "instalments": [
+      {
+        "amount": "10000.00",
+        "date": "06-Jun-2026",
+        "mode": "Cash",
+        "rate": "14,000",
+        "added_g": "0.714",
+        "status": "PAID"
+      }
+    ]
+  },
+  {
+    "scheme_id": "SMG-0002",
+    "name": "T RAMA DEVI",
+    "mobile": "7661047458",
+    "scheme_type": "MONEY ACCUMULATION",
+    "enrolment_date": "06-Jun-2026",
+    "base_amount": "1000.00",
+    "staff_name": "MOHIT",
+    "instalments": [
+      {
+        "amount": "1000.00",
+        "date": "06-Jun-2026",
+        "mode": "UPI",
+        "rate": "",
+        "added_g": "",
+        "status": "PAID"
+      }
+    ]
+  },
+  {
+    "scheme_id": "SMG-0003",
+    "name": "J ASHOK",
+    "mobile": "9391056620",
+    "scheme_type": "MONEY ACCUMULATION",
+    "enrolment_date": "06-Jun-2026",
+    "base_amount": "1000.00",
+    "staff_name": "MOHIT",
+    "instalments": [
+      {
+        "amount": "1000.00",
+        "date": "06-Jun-2026",
+        "mode": "UPI",
+        "rate": "",
+        "added_g": "",
+        "status": "PAID"
+      }
+    ]
+  },
+  {
+    "scheme_id": "SMG-0004",
+    "name": "SAHASRA REDDY",
+    "mobile": "9154505423",
+    "scheme_type": "MONEY ACCUMULATION",
+    "enrolment_date": "07-Jun-2026",
+    "base_amount": "2000.00",
+    "staff_name": "SRIKANTH",
+    "instalments": [
+      {
+        "amount": "2000.00",
+        "date": "07-Jun-2026",
+        "mode": "UPI",
+        "rate": "",
+        "added_g": "",
+        "status": "PAID"
+      }
+    ]
+  },
+  {
+    "scheme_id": "SMG-0005",
+    "name": "T POLINAIDU",
+    "mobile": "8886914643",
+    "scheme_type": "MONEY ACCUMULATION",
+    "enrolment_date": "07-Jun-2026",
+    "base_amount": "2000.00",
+    "staff_name": "ASHOK",
+    "instalments": [
+      {
+        "amount": "2000.00",
+        "date": "07-Jun-2026",
+        "mode": "UPI",
+        "rate": "",
+        "added_g": "",
+        "status": "PAID"
+      }
+    ]
+  },
+  {
+    "scheme_id": "SMG-0006",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0007",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0008",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0009",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0010",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0011",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0012",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0013",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0014",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0015",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0016",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0017",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0018",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0019",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0020",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0021",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0022",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0023",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0024",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0025",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0026",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0027",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0028",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0029",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0030",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0031",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0032",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0033",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0034",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0035",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0036",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0037",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0038",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0039",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0040",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0041",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0042",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0043",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0044",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0045",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0046",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0047",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0048",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0049",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0050",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0051",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0052",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0053",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0054",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0055",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0056",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0057",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0058",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0059",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0060",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0061",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0062",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0063",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0064",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0065",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0066",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0067",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0068",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0069",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0070",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0071",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0072",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0073",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0074",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0075",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0076",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0077",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0078",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0079",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0080",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0081",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0082",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0083",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0084",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0085",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0086",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0087",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0088",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0089",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0090",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0091",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0092",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0093",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0094",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0095",
+    "instalments": [
+      {}
+    ]
+  },
+  {
+    "scheme_id": "SMG-0096",
+    "instalments": [
+      {}
+    ]
+  }
+]

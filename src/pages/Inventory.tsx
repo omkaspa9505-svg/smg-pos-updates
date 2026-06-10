@@ -12,7 +12,9 @@ const INITIAL_ITEM = {
   stone_wt: '0',
   making_charge_type: 'percentage',
   making_charge_rate: '',
-  vendor_name: ''
+  vendor_name: '',
+  huid: '',
+  stones: [] as any[]
 }
 
 export default function Inventory() {
@@ -53,7 +55,8 @@ export default function Inventory() {
   }
 
   const handleEdit = (item: any) => {
-    setNewItem({ ...item })
+    const parsedStones = typeof item.stones === 'string' ? JSON.parse(item.stones || '[]') : (item.stones || [])
+    setNewItem({ ...item, stones: parsedStones })
     setEditMode(true)
     setShowModal(true)
   }
@@ -104,7 +107,9 @@ export default function Inventory() {
           gross_wt: grossWt,
           net_wt: netWt,
           stone_wt: Number(newItem.stone_wt) || 0,
-          making_charge_rate: makingCharge
+          making_charge_rate: makingCharge,
+          stones: newItem.stones,
+          huid: newItem.huid
         })
       } else {
         result = await api.addInventory({
@@ -113,7 +118,9 @@ export default function Inventory() {
           gross_wt: grossWt,
           net_wt: netWt,
           stone_wt: Number(newItem.stone_wt) || 0,
-          making_charge_rate: makingCharge
+          making_charge_rate: makingCharge,
+          stones: newItem.stones,
+          huid: newItem.huid
         })
       }
       
@@ -153,6 +160,48 @@ export default function Inventory() {
 
   const set = (field: string, value: string) =>
     setNewItem(prev => ({ ...prev, [field]: value }))
+
+  const recalcWeights = (grossWtStr: string, currentStones: any[], prev: any) => {
+    const gWt = Number(grossWtStr) || 0
+    let sWt = 0
+    currentStones.forEach(s => {
+      sWt += (Number(s.carats) || 0) * 0.2
+    })
+    return {
+      ...prev,
+      stones: currentStones,
+      gross_wt: grossWtStr,
+      stone_wt: sWt.toFixed(3),
+      net_wt: Math.max(0, gWt - sWt).toFixed(3)
+    }
+  }
+
+  const setGrossWt = (val: string) => {
+    setNewItem(prev => recalcWeights(val, prev.stones, prev))
+  }
+
+  const addStone = () => {
+    setNewItem(prev => ({
+      ...prev,
+      stones: [...(prev.stones || []), { name: '', carats: '', rate: '' }]
+    }))
+  }
+
+  const removeStone = (index: number) => {
+    setNewItem(prev => {
+      const newStones = [...(prev.stones || [])]
+      newStones.splice(index, 1)
+      return recalcWeights(prev.gross_wt, newStones, prev)
+    })
+  }
+
+  const updateStone = (index: number, field: string, value: string) => {
+    setNewItem(prev => {
+      const newStones = [...(prev.stones || [])]
+      newStones[index] = { ...newStones[index], [field]: value }
+      return recalcWeights(prev.gross_wt, newStones, prev)
+    })
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -271,7 +320,7 @@ export default function Inventory() {
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
           <div 
-            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-gray-100 animate-in zoom-in-95 duration-200"
+            className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg border border-gray-100 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
@@ -334,7 +383,7 @@ export default function Inventory() {
                   <input
                     type="number"
                     value={newItem.gross_wt}
-                    onChange={e => set('gross_wt', e.target.value)}
+                    onChange={e => setGrossWt(e.target.value)}
                     className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     
                     min="0"
@@ -399,6 +448,61 @@ export default function Inventory() {
                   className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">HUID</label>
+                <input
+                  type="text"
+                  value={newItem.huid || ''}
+                  onChange={e => set('huid', e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all uppercase"
+                  placeholder="e.g. AB123C"
+                />
+              </div>
+
+              {/* Stones Section */}
+              <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-semibold text-gray-800">Stones Details</h3>
+                  <button onClick={addStone} className="text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-lg font-medium text-blue-600 hover:bg-gray-50 flex items-center gap-1">
+                    <Plus size={14} /> Add Stone
+                  </button>
+                </div>
+                {(!newItem.stones || newItem.stones.length === 0) ? (
+                  <p className="text-sm text-gray-500 text-center py-2">No stones added.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {newItem.stones.map((stone: any, idx: number) => (
+                      <div key={idx} className="flex gap-2 items-center bg-white p-2 rounded-lg border border-gray-200">
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={stone.name}
+                          onChange={e => updateStone(idx, 'name', e.target.value)}
+                          className="flex-1 p-2 bg-gray-50 border border-gray-100 rounded outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Carats"
+                          value={stone.carats}
+                          onChange={e => updateStone(idx, 'carats', e.target.value)}
+                          className="w-24 p-2 bg-gray-50 border border-gray-100 rounded outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Rate/Ct"
+                          value={stone.rate}
+                          onChange={e => updateStone(idx, 'rate', e.target.value)}
+                          className="w-24 p-2 bg-gray-50 border border-gray-100 rounded outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+                        />
+                        <button onClick={() => removeStone(idx)} className="p-2 text-red-500 hover:bg-red-50 rounded">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-2">
