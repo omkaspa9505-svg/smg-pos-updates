@@ -608,7 +608,15 @@ ipcMain.handle('get-printers', async () => {
 
 ipcMain.handle('print-receipt', async (event, printerName) => {
   if (mainWindow) {
-    mainWindow.webContents.print({ silent: true, deviceName: printerName || undefined, printBackground: true, color: true, copies: 1 })
+    // For Brother DCP-B7500D (A4 Invoices)
+    mainWindow.webContents.print({ 
+      silent: true, 
+      deviceName: printerName || undefined, 
+      printBackground: true, 
+      color: true, 
+      copies: 1,
+      margins: { marginType: 'printableArea' } 
+    })
     return true
   }
   return false
@@ -621,7 +629,15 @@ ipcMain.handle('print-html', async (event, { html, printerName }) => {
   return new Promise((resolve) => {
     // Wait for the window to finish loading the HTML before printing
     win.webContents.once('did-finish-load', () => {
-      win.webContents.print({ silent: true, deviceName: printerName || undefined, printBackground: true, color: true, copies: 1 }, (success) => {
+      // For Zebra ZD421 (Thermal Labels)
+      win.webContents.print({ 
+        silent: true, 
+        deviceName: printerName || undefined, 
+        printBackground: true, 
+        color: true, 
+        copies: 1,
+        margins: { marginType: 'none' }
+      }, (success) => {
         win.close()
         resolve(success)
       })

@@ -41,7 +41,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
         <head>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { display: flex; justify-content: center; align-items: center; height: 100vh; background: white; }
+            body { display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh; margin: 0; padding: 0; background: white; overflow: hidden; }
             .tag-wrapper { width: 2in; font-family: sans-serif; }
             .tag-section { border: 1px dashed #999; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 4px; }
             .tag-name { font-size: 10px; font-weight: 800; }

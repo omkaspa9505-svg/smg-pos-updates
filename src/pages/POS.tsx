@@ -159,7 +159,7 @@ export default function POS() {
 
     const finalPayments = totalPaid === 0 && grandTotal > 0 
       ? { Cash: grandTotal } 
-      : Object.fromEntries(Object.entries(payments).map(([k, v]) => [k, Number(v) || 0]).filter(([_, v]) => v > 0))
+      : Object.fromEntries(Object.entries(payments).map(([k, v]) => [k, Number(v) || 0] as [string, number]).filter(([_, v]) => v > 0))
 
     const invoiceData = {
       customer_name: customer.name || 'Walk-in',
@@ -475,7 +475,7 @@ export default function POS() {
             
             <div className="flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-100">
               {/* PRINT TEMPLATE */}
-              <div id="print-invoice" className="bg-white text-black p-8 shadow-xl w-full max-w-3xl min-h-[500px] h-max" style={{ fontFamily: 'Arial, sans-serif' }}>
+              <div id="print-invoice" className="print-only bg-white text-black p-8 shadow-xl w-full max-w-3xl min-h-[500px] h-max" style={{ fontFamily: 'Arial, sans-serif' }}>
                 <div className="text-center mb-6">
                   <h1 className="text-3xl font-black tracking-tight">SHREE MAHA GANESH JEWELLERS</h1>
                   <p className="text-sm mt-1">Shop No: 4 & 5, Sindhu Nilayam, Sri Ram Nagar Colony, Gangaram, Chandanagar, Hyderabad-50, TG.</p>
