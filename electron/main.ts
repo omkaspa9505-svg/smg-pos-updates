@@ -261,13 +261,15 @@ app.whenReady().then(async () => {
     initWhatsApp(mainWindow)
   }
   
-  // Check for updates
+  // Check for updates with a 5-second delay to prevent race conditions on slower computers
   if (!process.env.VITE_DEV_SERVER_URL) {
-    try {
-      autoUpdater.checkForUpdatesAndNotify()
-    } catch (err) {
-      console.error('Update check failed:', err)
-    }
+    setTimeout(() => {
+      try {
+        autoUpdater.checkForUpdatesAndNotify()
+      } catch (err) {
+        console.error('Update check failed:', err)
+      }
+    }, 5000)
   }
 
   // Schedule daily backup at 8:30 PM (20:30)
