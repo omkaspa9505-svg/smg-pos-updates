@@ -61,7 +61,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
         html: htmlContent,
         printerName: selectedPrinter,
         options: {
-          silent: true,
+          silent: false, // SHOW PRINT DIALOG
           printBackground: true,
           color: false,
           copies: 1,
