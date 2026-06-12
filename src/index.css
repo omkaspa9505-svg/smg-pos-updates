@@ -1,21 +1,22 @@
 @import "tailwindcss";
 
 @media print {
-  body * {
-    visibility: hidden;
+  /* Completely hide the main app to remove all empty space and layout interference */
+  #root {
+    display: none !important;
   }
-  .print-only, .print-only * {
-    visibility: visible !important;
+  
+  /* Reset the body and html so the printed page starts perfectly at 0,0 */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    height: auto !important;
+    width: 100% !important;
   }
-  .print-only {
-    position: absolute;
-    left: 0;
-    top: 0;
-    margin: 0;
-    padding: 0;
-  }
+
   @page {
-    margin: 0;
+    margin: 1cm;
   }
 }
 

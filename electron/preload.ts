@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   // Rates
@@ -38,7 +38,7 @@ contextBridge.exposeInMainWorld('api', {
   // Hardware
   getPrinters: () => ipcRenderer.invoke('get-printers'),
   printReceipt: (printerName?: string) => ipcRenderer.invoke('print-receipt', printerName),
-  printHtml: (data: { html: string, printerName?: string }) => ipcRenderer.invoke('print-html', data),
+  printHtml: (data: { html: string, printerName?: string, options?: any }) => ipcRenderer.invoke('print-html', data),
 
   // WhatsApp
   getWhatsAppStatus: () => ipcRenderer.invoke('whatsapp-status'),

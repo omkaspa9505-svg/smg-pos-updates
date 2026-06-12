@@ -622,22 +622,28 @@ ipcMain.handle('print-receipt', async (event, printerName) => {
   return false
 })
 
-ipcMain.handle('print-html', async (event, { html, printerName }) => {
+ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
   const win = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: false, contextIsolation: true } })
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   
   return new Promise((resolve) => {
     // Wait for the window to finish loading the HTML before printing
     win.webContents.once('did-finish-load', () => {
-      // For Zebra ZD421 (Thermal Labels)
-      win.webContents.print({ 
+      // Default to Zebra thermal label settings if no options provided
+      const printOptions = options || {
         silent: true, 
         deviceName: printerName || undefined, 
         printBackground: true, 
-        color: true, 
+        color: false, 
         copies: 1,
         margins: { marginType: 'none' }
-      }, (success) => {
+      }
+      
+      // Ensure deviceName is set
+      printOptions.deviceName = printerName || undefined
+      printOptions.silent = true
+
+      win.webContents.print(printOptions, (success) => {
         win.close()
         resolve(success)
       })

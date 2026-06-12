@@ -1,16 +1,31 @@
 import { useState, useEffect } from 'react'
-import { TrendingUp, DollarSign, Target, Package, Trash2 } from 'lucide-react'
+import { TrendingUp, DollarSign, Target, Package, Trash2, Receipt } from 'lucide-react'
 import toast from 'react-hot-toast'
+import InvoicePrintModal from '../components/InvoicePrintModal'
 
 export default function Reports() {
   const [sales, setSales] = useState<any[]>([])
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [saleToDelete, setSaleToDelete] = useState<number | null>(null)
   const [password, setPassword] = useState('')
+  const [printers, setPrinters] = useState<any[]>([])
+  const [selectedPrinter, setSelectedPrinter] = useState<string>('')
+  const [reprintInvoice, setReprintInvoice] = useState<any>(null)
 
   useEffect(() => {
     loadSales()
+    loadPrinters()
   }, [])
+
+  const loadPrinters = async () => {
+    if ((window as any).api) {
+      const prs = await (window as any).api.getPrinters()
+      setPrinters(prs)
+      const defaultPrinter = prs.find((p: any) => p.isDefault)
+      if (defaultPrinter) setSelectedPrinter(defaultPrinter.name)
+      else if (prs.length > 0) setSelectedPrinter(prs[0].name)
+    }
+  }
 
   const loadSales = async () => {
     if ((window as any).api) {
@@ -23,6 +38,16 @@ export default function Reports() {
     setSaleToDelete(id)
     setPassword('')
     setDeleteModalOpen(true)
+  }
+
+  const handleReprintClick = async (sale: any) => {
+    if ((window as any).api) {
+      const items = await (window as any).api.getSaleItems(sale.id)
+      setReprintInvoice({
+        ...sale,
+        items: items
+      })
+    }
   }
 
   const confirmDelete = async () => {
@@ -127,7 +152,14 @@ export default function Reports() {
                 <td className="p-4">
                   <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase">{s.payment_mode}</span>
                 </td>
-                <td className="p-4 text-center">
+                <td className="p-4 flex justify-center gap-2">
+                  <button
+                    onClick={() => handleReprintClick(s)}
+                    className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-colors flex items-center justify-center w-full"
+                    title="Reprint Invoice"
+                  >
+                    <Receipt size={18} />
+                  </button>
                   <button
                     onClick={() => handleDeleteClick(s.id)}
                     className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center justify-center w-full"
@@ -164,6 +196,16 @@ export default function Reports() {
             </div>
           </div>
         </div>
+      )}
+
+      {reprintInvoice && (
+        <InvoicePrintModal
+          completedInvoice={reprintInvoice}
+          printers={printers}
+          selectedPrinter={selectedPrinter}
+          onPrinterChange={(e) => setSelectedPrinter(e.target.value)}
+          onClose={() => setReprintInvoice(null)}
+        />
       )}
     </div>
   )
