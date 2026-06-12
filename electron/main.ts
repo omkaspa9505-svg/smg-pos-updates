@@ -614,26 +614,26 @@ ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   
   return new Promise((resolve) => {
-    // Wait for the window to finish loading the HTML before printing
     win.webContents.once('did-finish-load', () => {
-      // Default to Zebra thermal label settings if no options provided
-      const printOptions = options || {
-        silent: true, 
-        deviceName: printerName || undefined, 
-        printBackground: true, 
-        color: false, 
-        copies: 1,
-        margins: { marginType: 'none' }
-      }
-      
-      // Ensure deviceName is set
-      printOptions.deviceName = printerName || undefined
-      printOptions.silent = true
+      // Wait 800ms after load so SVG barcode has time to fully render before printing
+      setTimeout(() => {
+        const printOptions = options || {
+          silent: true, 
+          deviceName: printerName || undefined, 
+          printBackground: true, 
+          color: false, 
+          copies: 1,
+          margins: { marginType: 'none' }
+        }
+        
+        printOptions.deviceName = printerName || undefined
+        printOptions.silent = true
 
-      win.webContents.print(printOptions, (success) => {
-        win.close()
-        resolve(success)
-      })
+        win.webContents.print(printOptions, (success) => {
+          win.close()
+          resolve(success)
+        })
+      }, 800)
     })
   })
 })
