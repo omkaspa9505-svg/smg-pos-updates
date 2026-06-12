@@ -36,24 +36,39 @@ export default function BarcodeTag({ item, onClose }: Props) {
     const printContents = printRef.current?.innerHTML
     if (!printContents) return
 
+    // 2" x 1" label = 50.8mm x 25.4mm = 50800 x 25400 micrometers (Zebra ZD421 standard jewelry tag)
+    const labelPageSize = { width: 50800, height: 25400 }
+
     const htmlContent = `
       <html>
         <head>
           <style>
+            @page { size: 2in 1in; margin: 0; }
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { display: flex; justify-content: center; align-items: center; width: 100%; height: 100vh; margin: 0; padding: 0; background: white; overflow: hidden; }
-            .tag-wrapper { width: 2in; font-family: sans-serif; }
-            .tag-section { border: 1px dashed #999; padding: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; margin-bottom: 4px; }
-            .tag-name { font-size: 10px; font-weight: 800; }
-            .tag-detail { font-size: 9px; font-weight: 700; text-transform: uppercase; }
-            .tag-wt { font-size: 9px; }
+            body { width: 2in; height: 1in; overflow: hidden; background: white; font-family: Arial, sans-serif; }
+            .tag-wrapper { width: 2in; height: 1in; display: flex; flex-direction: column; }
+            .tag-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2px; }
+            .tag-name { font-size: 9px; font-weight: 800; }
+            .tag-detail { font-size: 8px; font-weight: 700; text-transform: uppercase; }
+            .tag-wt { font-size: 8px; }
           </style>
         </head>
         <body>${printContents}</body>
       </html>
     `
     if ((window as any).api) {
-      ;(window as any).api.printHtml({ html: htmlContent, printerName: selectedPrinter })
+      ;(window as any).api.printHtml({
+        html: htmlContent,
+        printerName: selectedPrinter,
+        options: {
+          silent: true,
+          printBackground: true,
+          color: false,
+          copies: 1,
+          margins: { marginType: 'none' },
+          pageSize: labelPageSize
+        }
+      })
     }
     onClose()
   }
