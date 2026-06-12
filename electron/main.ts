@@ -20,24 +20,9 @@ let db: any;
 
 async function setupDatabase() {
   const dbPath = join(app.getPath('userData'), 'smg_pos.db')
-  const migrationFlag = join(app.getPath('userData'), 'migration_1.0.31_done.txt')
 
-  if (!fs.existsSync(migrationFlag)) {
-    const initialDbPath = app.isPackaged 
-      ? join(process.resourcesPath, 'initial_db.sqlite')
-      : join(__dirname, '../../initial_db.sqlite');
-      
-    if (fs.existsSync(initialDbPath)) {
-      try {
-        fs.copyFileSync(initialDbPath, dbPath);
-        fs.writeFileSync(migrationFlag, 'done');
-        console.log('Seeded initial database successfully for 1.0.31 migration!');
-      } catch (e) {
-        console.error('Failed to seed initial database:', e);
-      }
-    }
-  } else if (!fs.existsSync(dbPath)) {
-    // If the database doesn't exist (e.g. fresh install after migration)
+  if (!fs.existsSync(dbPath)) {
+    // If the database doesn't exist (e.g. fresh install)
     const initialDbPath = app.isPackaged 
       ? join(process.resourcesPath, 'initial_db.sqlite')
       : join(__dirname, '../../initial_db.sqlite');
