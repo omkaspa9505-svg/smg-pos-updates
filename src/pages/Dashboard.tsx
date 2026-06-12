@@ -109,7 +109,7 @@ export default function Dashboard() {
     <div className="p-8 pb-24 max-w-7xl mx-auto h-full overflow-y-auto">
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight" style={{color: '#B8860B'}}>✦ Dashboard</h1>
           <p className="text-gray-500 mt-1">Overview of today's business and live board rates.</p>
         </div>
       </div>
