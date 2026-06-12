@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('api', {
   getPrinters: () => ipcRenderer.invoke('get-printers'),
   printReceipt: (printerName?: string) => ipcRenderer.invoke('print-receipt', printerName),
   printHtml: (data: { html: string, printerName?: string, options?: any }) => ipcRenderer.invoke('print-html', data),
+  printZpl: (data: { zpl: string, printerName: string }) => ipcRenderer.invoke('print-zpl', data),
 
   // WhatsApp
   getWhatsAppStatus: () => ipcRenderer.invoke('whatsapp-status'),

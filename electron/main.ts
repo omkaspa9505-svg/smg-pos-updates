@@ -638,10 +638,79 @@ ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
   })
 })
 
+// ZPL Raw Printing for Zebra Printers (ZD421 etc.)
+ipcMain.handle('print-zpl', async (event, { zpl, printerName }) => {
+  try {
+    const os = await import('os')
+    const tmpFile = join(os.tmpdir(), 'smg_tag_' + Date.now() + '.zpl')
+    fs.writeFileSync(tmpFile, zpl, 'ascii')
+
+    // Send raw ZPL to Zebra printer via PowerShell WritePrinter Win32 API
+    const psScript = `
+$printerName = "${printerName.replace(/"/g, '`"')}"
+$zplFile = "${tmpFile.replace(/\\/g, '\\\\')}"
+$zpl = [System.IO.File]::ReadAllBytes($zplFile)
+
+Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+public class RawPrinter {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+    public class DOCINFOA {
+        [MarshalAs(UnmanagedType.LPStr)] public string pDocName;
+        [MarshalAs(UnmanagedType.LPStr)] public string pOutputFile;
+        [MarshalAs(UnmanagedType.LPStr)] public string pDataType;
+    }
+    [DllImport("winspool.Drv", EntryPoint="OpenPrinterA", SetLastError=true, CharSet=CharSet.Ansi)]
+    public static extern bool OpenPrinter(string szPrinter, out IntPtr hPrinter, IntPtr pd);
+    [DllImport("winspool.Drv", EntryPoint="ClosePrinter")]
+    public static extern bool ClosePrinter(IntPtr hPrinter);
+    [DllImport("winspool.Drv", EntryPoint="StartDocPrinterA", SetLastError=true, CharSet=CharSet.Ansi)]
+    public static extern bool StartDocPrinter(IntPtr hPrinter, Int32 level, [In, MarshalAs(UnmanagedType.LPStruct)] DOCINFOA di);
+    [DllImport("winspool.Drv", EntryPoint="EndDocPrinter")]
+    public static extern bool EndDocPrinter(IntPtr hPrinter);
+    [DllImport("winspool.Drv", EntryPoint="StartPagePrinter")]
+    public static extern bool StartPagePrinter(IntPtr hPrinter);
+    [DllImport("winspool.Drv", EntryPoint="EndPagePrinter")]
+    public static extern bool EndPagePrinter(IntPtr hPrinter);
+    [DllImport("winspool.Drv", EntryPoint="WritePrinter", SetLastError=true)]
+    public static extern bool WritePrinter(IntPtr hPrinter, IntPtr pBytes, Int32 dwCount, out Int32 dwWritten);
+}
+"@
+
+$hPrinter = [IntPtr]::Zero
+[RawPrinter]::OpenPrinter($printerName, [ref]$hPrinter, [IntPtr]::Zero) | Out-Null
+$docInfo = New-Object RawPrinter+DOCINFOA
+$docInfo.pDocName = "ZPL Label"
+$docInfo.pDataType = "RAW"
+[RawPrinter]::StartDocPrinter($hPrinter, 1, $docInfo) | Out-Null
+[RawPrinter]::StartPagePrinter($hPrinter) | Out-Null
+$ptr = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($zpl.Length)
+[System.Runtime.InteropServices.Marshal]::Copy($zpl, 0, $ptr, $zpl.Length)
+$written = 0
+[RawPrinter]::WritePrinter($hPrinter, $ptr, $zpl.Length, [ref]$written) | Out-Null
+[System.Runtime.InteropServices.Marshal]::FreeHGlobal($ptr)
+[RawPrinter]::EndPagePrinter($hPrinter) | Out-Null
+[RawPrinter]::EndDocPrinter($hPrinter) | Out-Null
+[RawPrinter]::ClosePrinter($hPrinter) | Out-Null
+Write-Output "Sent $written bytes to $printerName"
+`
+    const { execSync } = await import('child_process')
+    const result = execSync(`powershell -NoProfile -NonInteractive -Command "${psScript.replace(/"/g, '\\"').replace(/\n/g, ' ')}"`, { encoding: 'utf8', timeout: 10000 })
+    console.log('ZPL print result:', result)
+    fs.unlinkSync(tmpFile)
+    return { success: true }
+  } catch (err: any) {
+    console.error('ZPL print failed:', err)
+    return { success: false, error: err.message }
+  }
+})
+
 // WhatsApp Integration
 ipcMain.handle('whatsapp-status', async () => {
   return getWhatsAppStatus()
 })
+
 
 ipcMain.handle('whatsapp-logout', async () => {
   await logoutWhatsApp()
