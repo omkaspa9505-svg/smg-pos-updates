@@ -40,17 +40,17 @@ export default function InvoicePrintModal({
           </button>
         </div>
         
-        <div className="flex-1 overflow-auto p-8 flex justify-center items-start bg-gray-100">
-          {/* VISUAL PREVIEW TEMPLATE */}
-          <div className="bg-white text-black p-8 shadow-xl w-full max-w-3xl min-h-[500px] h-max" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <div className="text-center mb-6">
-              <h1 className="text-3xl font-black tracking-tight">SHREE MAHA GANESH JEWELLERS</h1>
-              <p className="text-sm mt-1">Shop No: 4 & 5, Sindhu Nilayam, Sri Ram Nagar Colony, Gangaram, Chandanagar, Hyderabad-50, TG.</p>
-              <p className="text-sm font-bold mt-1">GSTIN: 36AETFS3971D1ZK</p>
-              <div className="inline-block border border-black px-4 py-1 mt-3 font-bold uppercase tracking-widest text-sm">GST - INVOICE</div>
+        <div className="flex-1 overflow-auto p-4 flex justify-center items-start bg-gray-100">
+          {/* VISUAL PREVIEW TEMPLATE - A5 PORTRAIT SIZE (148mm x 210mm) */}
+          <div className="bg-white text-black p-4 shadow-xl w-[148mm] min-h-[210mm] h-max text-xs" style={{ fontFamily: 'Arial, sans-serif' }}>
+            <div className="text-center mb-3">
+              <h1 className="text-xl font-black tracking-tight">SHREE MAHA GANESH JEWELLERS</h1>
+              <p className="text-[10px] mt-1">Shop No: 4 & 5, Sindhu Nilayam, Sri Ram Nagar Colony, Gangaram, Chandanagar, Hyderabad-50, TG.</p>
+              <p className="text-[10px] font-bold mt-0.5">GSTIN: 36AETFS3971D1ZK</p>
+              <div className="inline-block border border-black px-2 py-0.5 mt-2 font-bold uppercase tracking-widest text-[10px]">GST - INVOICE</div>
             </div>
             
-            <div className="flex justify-between border border-black p-2 mb-4 text-sm">
+            <div className="flex justify-between border border-black p-1.5 mb-2 text-[10px]">
               <div>
                 <p><span className="font-bold">Customer Name:</span> {completedInvoice.customer_name}</p>
                 {completedInvoice.customer_mobile && <p><span className="font-bold">Mobile:</span> {completedInvoice.customer_mobile}</p>}
@@ -62,8 +62,8 @@ export default function InvoicePrintModal({
               </div>
             </div>
             
-            <table className="w-full text-sm border-collapse border border-black mb-4">
-              <thead className="bg-gray-50 border-b border-black text-xs uppercase print:bg-white">
+            <table className="w-full text-[10px] border-collapse border border-black mb-2">
+              <thead className="bg-gray-50 border-b border-black text-[9px] uppercase print:bg-white">
                 <tr>
                   <th className="border-r border-black py-2 px-2 text-center w-8">S.No</th>
                   <th className="border-r border-black py-2 px-2 text-left">Description</th>
@@ -81,11 +81,11 @@ export default function InvoicePrintModal({
                 {completedInvoice.items && completedInvoice.items.map((i: any, x: number) => (
                   <tr key={x} className="border-b border-black">
                     <td className="border-r border-black py-2 px-2 text-center">{x + 1}</td>
-                    <td className="border-r border-black py-2 px-2">
-                      <div className="font-bold">{i.category}</div>
-                      <div className="text-xs text-gray-600">{i.purity} {i.barcode}</div>
+                    <td className="border-r border-black py-1 px-1">
+                      <div className="font-bold leading-tight">{i.category}</div>
+                      <div className="text-[8px] text-gray-600 leading-tight">{i.purity} {i.barcode}</div>
                     </td>
-                    <td className="border-r border-black py-2 px-2 text-center">{i.hsn_code}</td>
+                    <td className="border-r border-black py-1 px-1 text-center">{i.hsn_code}</td>
                     <td className="border-r border-black py-2 px-2 text-center">{i.qty || 1}</td>
                     <td className="border-r border-black py-2 px-2 text-right">{i.gross_wt}</td>
                     <td className="border-r border-black py-2 px-2 text-right">{i.net_wt}</td>
@@ -112,8 +112,8 @@ export default function InvoicePrintModal({
               </tbody>
             </table>
             
-            <div className="flex gap-4">
-              <div className="flex-1 border border-black p-3 text-xs leading-relaxed flex flex-col justify-between">
+            <div className="flex gap-2">
+              <div className="flex-1 border border-black p-1.5 text-[9px] leading-tight flex flex-col justify-between">
                 <div>
                   <p className="font-bold underline mb-1">Terms & Conditions:</p>
                   <ol className="list-decimal pl-4 space-y-1">
@@ -129,30 +129,30 @@ export default function InvoicePrintModal({
                 </div>
               </div>
               
-              <div className="w-[250px] border border-black text-sm flex flex-col">
-                <div className="flex justify-between p-2 border-b border-black">
+              <div className="w-[180px] border border-black text-[10px] flex flex-col">
+                <div className="flex justify-between p-1 border-b border-black">
                   <span>Total Amount:</span>
                   <span className="font-bold">{(completedInvoice.total_metal_value || completedInvoice.subtotal)?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between p-2 border-b border-black">
+                <div className="flex justify-between p-1 border-b border-black">
                   <span>Discount:</span>
                   <span>{(completedInvoice.discount || 0).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between p-2 border-b border-black bg-gray-50 print:bg-white">
+                <div className="flex justify-between p-1 border-b border-black bg-gray-50 print:bg-white">
                   <span className="font-bold">Taxable Amount:</span>
                   <span className="font-bold">{(completedInvoice.taxable_amount || (completedInvoice.subtotal - (completedInvoice.discount || 0))).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between p-2 border-b border-black">
+                <div className="flex justify-between p-1 border-b border-black">
                   <span>CGST:</span>
                   <span>{(completedInvoice.cgst || (completedInvoice.gst_amount / 2))?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between p-2 border-b border-black">
+                <div className="flex justify-between p-1 border-b border-black">
                   <span>SGST:</span>
                   <span>{(completedInvoice.sgst || (completedInvoice.gst_amount / 2))?.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between p-3 bg-gray-100 flex-1 items-center print:bg-white">
-                  <span className="font-black text-lg">Net Total:</span>
-                  <span className="font-black text-lg">Rs. {completedInvoice.grand_total?.toFixed(2)}</span>
+                <div className="flex justify-between p-1.5 bg-gray-100 flex-1 items-center print:bg-white border-b border-black">
+                  <span className="font-black text-sm">Net Total:</span>
+                  <span className="font-black text-sm">Rs. {completedInvoice.grand_total?.toFixed(2)}</span>
                 </div>
               </div>
             </div>
