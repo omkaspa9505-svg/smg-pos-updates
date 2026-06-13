@@ -33,6 +33,7 @@ contextBridge.exposeInMainWorld('api', {
   createInvoice: (data: any) => ipcRenderer.invoke('create-invoice', data),
   getSales: () => ipcRenderer.invoke('get-sales'),
   getSaleItems: (saleId: number) => ipcRenderer.invoke('get-sale-items', saleId),
+  getSaleExchanges: (saleId: number) => ipcRenderer.invoke('get-sale-exchanges', saleId),
   deleteSale: (id: number) => ipcRenderer.invoke('delete-sale', id),
   
   // Hardware

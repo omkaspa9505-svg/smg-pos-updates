@@ -43,9 +43,11 @@ export default function Reports() {
   const handleReprintClick = async (sale: any) => {
     if ((window as any).api) {
       const items = await (window as any).api.getSaleItems(sale.id)
+      const exchanges = await (window as any).api.getSaleExchanges(sale.id)
       setReprintInvoice({
         ...sale,
-        items: items
+        items: items,
+        exchanges: exchanges
       })
     }
   }

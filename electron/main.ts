@@ -561,6 +561,10 @@ ipcMain.handle('get-sale-items', async (event, sale_id) => {
   return await db.all("SELECT * FROM sale_items WHERE sale_id = ?", sale_id)
 })
 
+ipcMain.handle('get-sale-exchanges', async (event, sale_id) => {
+  return await db.all("SELECT * FROM exchanges WHERE sale_id = ?", sale_id)
+})
+
 ipcMain.handle('delete-sale', async (event, id) => {
   try {
     await db.exec('BEGIN TRANSACTION')
@@ -618,7 +622,7 @@ ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
     win.webContents.once('did-finish-load', () => {
       // Default to Zebra thermal label settings if no options provided
       const printOptions = options || {
-        silent: true, 
+        silent: false, 
         deviceName: printerName || undefined, 
         printBackground: true, 
         color: false, 
@@ -628,7 +632,7 @@ ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
       
       // Ensure deviceName is set
       printOptions.deviceName = printerName || undefined
-      printOptions.silent = true
+      printOptions.silent = false // SHOW DIALOG so user can debug printer issues
 
       win.webContents.print(printOptions, (success) => {
         win.close()
