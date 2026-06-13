@@ -305,7 +305,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     <span>{offsetX} dots</span>
                   </div>
                   <input
-                    type="range" min="-300" max="600" step="5"
+                    type="range" min="0" max="600" step="5"
                     value={offsetX}
                     onChange={handleOffsetXChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
