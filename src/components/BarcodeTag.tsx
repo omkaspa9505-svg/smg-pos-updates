@@ -21,16 +21,19 @@ function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: nu
   const rightX = offsetX + gap
 
   const lines = [
-    '~SD25',
+    '~SD25', // Set Darkness to 25 (out of 30) for crisp printing on plastic tags
     '^XA',
-    '^PW456',
-    '^LL101',
-    '^PR2,2,2',
+    '^PR2,2,2', // Print Rate: 2 inches per second (slower speed = better ribbon transfer)
+    // --- RIGHT HALF: Shop Name, Details, Weights ---
     `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
-    `^FO${rightX},${offsetY + 20}^A0N,16,16^FD${catPurity}^FS`,
-    `^FO${rightX},${offsetY + 40}^A0N,15,15^FD${weights}^FS`,
+    `^FO${rightX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
+    `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
+    
+    // --- LEFT HALF: Barcode & HUID ---
+    // If HUID exists, print it above the barcode
     huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
-    `^FO${leftX},${offsetY + (huid ? 20 : 0)}^BCN,35,Y,N,N^FD${barcode}^FS`,
+    // Barcode - height 35 dots
+    `^FO${leftX},${offsetY + 22}^BCN,35,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -57,8 +60,6 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
   const lines = [
     '~SD25',
     '^XA',
-    '^PW456',
-    '^LL101',
     '^PR2,2,2',
     `^FO${offsetX},${offsetY}^A0N,16,16^FDSMG^FS`,
     `^FO${offsetX + 80},${offsetY}^A0N,16,16^FD${category}^FS`,
@@ -75,7 +76,7 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
 
 export default function BarcodeTag({ item, onClose }: Props) {
   const [tagFormat, setTagFormat] = useState<'rat-tail' | 'square'>(
-    (localStorage.getItem('zplTagFormat') as 'rat-tail' | 'square') || 'rat-tail'
+    (localStorage.getItem('zplTagFormat_v4') as 'rat-tail' | 'square') || 'rat-tail'
   )
 
   const [printers, setPrinters] = useState<any[]>([])
@@ -84,16 +85,15 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const [errorMsg, setErrorMsg] = useState('')
   const [showSettings, setShowSettings] = useState(false)
 
-  // Offsets (use v3 keys to reset old weird settings and apply new dimension limits)
-  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem(`zplOffsetX_v3_${tagFormat}`) || 20))
-  const [offsetY, setOffsetY] = useState(Number(localStorage.getItem(`zplOffsetY_v3_${tagFormat}`) || 10))
-  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap_v3_rat-tail') || 220))
+  // Jewelry tag offsets
+  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem(`zplOffsetX_v4_${tagFormat}`) || (tagFormat === 'rat-tail' ? 250 : 20)))
+  const [offsetY, setOffsetY] = useState(Number(localStorage.getItem(`zplOffsetY_v4_${tagFormat}`) || 10))
+  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap_v4') || 150)) // Distance between the two halves
 
-  // Update localStorage when format changes so it remembers
   useEffect(() => {
-    localStorage.setItem('zplTagFormat', tagFormat)
-    setOffsetX(Number(localStorage.getItem(`zplOffsetX_v3_${tagFormat}`) || 20))
-    setOffsetY(Number(localStorage.getItem(`zplOffsetY_v3_${tagFormat}`) || 10))
+    localStorage.setItem('zplTagFormat_v4', tagFormat)
+    setOffsetX(Number(localStorage.getItem(`zplOffsetX_v4_${tagFormat}`) || (tagFormat === 'rat-tail' ? 250 : 20)))
+    setOffsetY(Number(localStorage.getItem(`zplOffsetY_v4_${tagFormat}`) || 10))
   }, [tagFormat])
 
   useEffect(() => {
@@ -111,11 +111,39 @@ export default function BarcodeTag({ item, onClose }: Props) {
             p.name.toLowerCase().includes('zt')
           )
           const def = zebra || list.find(p => p.isDefault) || list[0]
-          if (def) setSelectedPrinter(def.name)
+          if (def) {
+            setSelectedPrinter(def.name)
+          }
         }
       })
     }
   }, [])
+
+  const handlePrinterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value
+    setSelectedPrinter(val)
+    localStorage.setItem('barcodePrinter', val)
+  }
+
+  const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value)
+    setOffsetX(val)
+    localStorage.setItem(`zplOffsetX_v4_${tagFormat}`, String(val))
+  }
+
+  const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value)
+    setOffsetY(val)
+    localStorage.setItem(`zplOffsetY_v4_${tagFormat}`, String(val))
+  }
+
+  const handleGapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value)
+    setGap(val)
+    localStorage.setItem('zplGap_v4', String(val))
+  }
+
+  if (!item) return null
 
   const handlePrint = async () => {
     if (!selectedPrinter) {
@@ -128,7 +156,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
     setErrorMsg('')
 
     try {
-      const zpl = tagFormat === 'rat-tail' 
+      const zpl = tagFormat === 'rat-tail'
         ? generateRatTailZpl(item, offsetX, offsetY, gap)
         : generateSquareZpl(item, offsetX, offsetY);
 
@@ -142,19 +170,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
     }
   }
 
-  const updateOffset = (key: 'X' | 'Y' | 'Gap', val: number) => {
-    if (key === 'X') {
-      setOffsetX(val)
-      localStorage.setItem(`zplOffsetX_v3_${tagFormat}`, String(val))
-    } else if (key === 'Y') {
-      setOffsetY(val)
-      localStorage.setItem(`zplOffsetY_v3_${tagFormat}`, String(val))
-    } else if (key === 'Gap') {
-      setGap(val)
-      localStorage.setItem('zplGap_v3_rat-tail', String(val))
-    }
-  }
-
   let vendorInitials = 'BS';
   if (item.vendor_name) {
     const parts = item.vendor_name.trim().split(' ');
@@ -164,9 +179,14 @@ export default function BarcodeTag({ item, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-5 w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-        
+    <div
+      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-5 w-full max-w-md max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-gray-800">Print Jewelry Tag</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -191,103 +211,182 @@ export default function BarcodeTag({ item, onClose }: Props) {
         </div>
 
         {/* Visual Preview */}
-        <div className="flex flex-col items-center bg-gray-100 py-6 px-2 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview (456 x 101 dots)</p>
+        <div className="flex flex-col items-center bg-gray-100 py-6 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview</p>
           
-          <div className="relative flex items-center justify-center w-full min-h-[120px] overflow-x-auto">
-            {tagFormat === 'rat-tail' ? (
-              // RAT TAIL PREVIEW
-              <div className="relative border border-gray-400 bg-white shadow-sm overflow-hidden flex-shrink-0" style={{ width: '456px', height: '101px' }}>
-                <div className="absolute left-0 top-0 w-full h-full pointer-events-none flex">
-                  {/* Visual representation of rat-tail cutouts */}
-                  <div className="w-[220px] h-full border-r-2 border-dashed border-gray-200 bg-white"></div>
-                  <div className="flex-1 h-full bg-white relative">
-                     <div className="absolute top-[30%] bottom-[30%] right-0 w-[40px] border-l border-gray-200 bg-gray-50"></div>
+          <div className="relative w-[400px] h-[52px] flex items-start justify-start">
+            <div 
+              className="absolute top-0 left-0 flex items-center justify-start drop-shadow-md"
+              style={{ 
+                width: '800px', 
+                height: '104px', 
+                transform: 'scale(0.5)', 
+                transformOrigin: 'top left',
+                backgroundColor: 'transparent'
+              }}
+            >
+              {tagFormat === 'rat-tail' ? (
+                <>
+                  <div className="bg-white rounded-l-3xl border border-gray-300 shadow-sm" style={{ width: '280px', height: '104px' }} />
+                  <div className="bg-white rounded-r-3xl border-y border-r border-gray-300 relative shadow-sm" style={{ width: '280px', height: '104px' }}>
+                    <div className="absolute left-0 top-3 bottom-3 w-[1px] border-l-[3px] border-dashed border-gray-200" />
                   </div>
-                </div>
+                  <div className="bg-white border-y border-r border-gray-300 rounded-r-full shadow-sm" style={{ width: '240px', height: '24px' }} />
 
-                <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
-                  {item.huid && <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'black', lineHeight: '18px' }}>HUID: {item.huid}</div>}
-                  <div style={{ marginTop: item.huid ? '2px' : '0' }}>
-                    <Barcode value={item.barcode || '000000'} width={1.2} height={35} fontSize={12} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                  <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
+                    {item.huid && (
+                      <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                        HUID: {item.huid}
+                      </div>
+                    )}
+                    <div style={{ position: 'absolute', left: 0, top: 22 }}>
+                      <Barcode value={item.barcode || '000000'} width={2} height={35} fontSize={18} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                    </div>
                   </div>
-                </div>
 
-                <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'black', lineHeight: '18px' }}>SMG Jewellers</div>
-                  <div style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', color: 'black', lineHeight: '20px', marginTop: '2px' }}>{item.category} {item.purity}</div>
-                  <div style={{ fontSize: '15px', color: 'black', lineHeight: '20px', marginTop: '0px' }}>GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g</div>
-                </div>
-              </div>
-            ) : (
-              // SQUARE TAG PREVIEW
-              <div className="relative border border-gray-400 bg-white shadow-sm overflow-hidden flex-shrink-0" style={{ width: '456px', height: '101px' }}>
-                <div style={{ position: 'absolute', left: offsetX, top: offsetY, width: '100%', height: '100%'}}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>SMG</div>
-                  <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.category}</div>
-                  
-                  <div style={{ position: 'absolute', left: 0, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{vendorInitials}</div>
-                  <div style={{ position: 'absolute', left: 80, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.purity}</div>
-                  
-                  <div style={{ position: 'absolute', left: 80, top: 36, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>W: {item.gross_wt || 0}</div>
-                  <div style={{ position: 'absolute', left: 80, top: 54, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.barcode || item.huid}</div>
-                  
-                  <div style={{ position: 'absolute', left: 0, top: 40 }}>
-                    <QRCodeSVG value={item.barcode || item.huid || '000000'} size={45} />
+                  <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                      SMG Jewellers
+                    </div>
+                    <div style={{ position: 'absolute', left: 0, top: 22, fontSize: 16, fontWeight: 700, fontFamily: 'sans-serif', whiteSpace: 'nowrap', textTransform: 'uppercase', color: 'black' }}>
+                      {item.category} {item.purity}
+                    </div>
+                    <div style={{ position: 'absolute', left: 0, top: 44, fontSize: 16, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                      GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
+                </>
+              ) : (
+                <>
+                  {/* Square Tag Preview background block */}
+                  <div className="bg-white border border-gray-300 shadow-sm" style={{ width: '280px', height: '104px' }} />
+                  
+                  <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>SMG</div>
+                    <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.category}</div>
+                    
+                    <div style={{ position: 'absolute', left: 0, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{vendorInitials}</div>
+                    <div style={{ position: 'absolute', left: 80, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.purity}</div>
+                    
+                    <div style={{ position: 'absolute', left: 80, top: 36, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>W: {item.gross_wt || 0}</div>
+                    <div style={{ position: 'absolute', left: 80, top: 54, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.barcode || item.huid}</div>
+                    
+                    <div style={{ position: 'absolute', left: 0, top: 40 }}>
+                      <QRCodeSVG value={item.barcode || item.huid || '000000'} size={45} />
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Settings Toggle */}
-        <button onClick={() => setShowSettings(!showSettings)} className="flex items-center gap-2 text-sm text-blue-600 font-medium mt-4">
-          <Settings2 size={16} /> {showSettings ? 'Hide Printer Adjustments' : 'Adjust Print Position'}
+        <button 
+          onClick={() => setShowSettings(!showSettings)}
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+        >
+          <Settings2 size={16} />
+          {showSettings ? 'Hide Printer Adjustments' : 'Adjust Print Position'}
         </button>
 
         {/* Settings Panel */}
         {showSettings && (
-          <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200 mt-2">
+          <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <div>
-              <div className="flex justify-between mb-2 text-xs font-semibold"><span>LEFT MARGIN (X OFFSET)</span><span>{offsetX} dots</span></div>
-              <input type="range" min="0" max="400" step="5" value={offsetX} onChange={e => updateOffset('X', Number(e.target.value))} className="w-full" />
+              <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
+                <span>LEFT MARGIN (X OFFSET)</span>
+                <span>{offsetX} dots</span>
+              </div>
+              <input 
+                type="range" min="0" max="600" step="5"
+                value={offsetX}
+                onChange={handleOffsetXChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Push the text further right onto the printable area.</p>
             </div>
 
+            {/* Gap Slider */}
             {tagFormat === 'rat-tail' && (
               <div>
-                <div className="flex justify-between mb-2 text-xs font-semibold"><span>GAP BETWEEN HALVES</span><span>{gap} dots</span></div>
-                <input type="range" min="50" max="600" step="5" value={gap} onChange={e => updateOffset('Gap', Number(e.target.value))} className="w-full" />
+                <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
+                  <span>GAP BETWEEN HALVES</span>
+                  <span>{gap} dots</span>
+                </div>
+                <input 
+                  type="range" min="50" max="600" step="5"
+                  value={gap}
+                  onChange={handleGapChange}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                />
+                <p className="text-[10px] text-gray-400 mt-1">Distance between the Barcode and the Details.</p>
               </div>
             )}
 
             <div>
-              <div className="flex justify-between mb-2 text-xs font-semibold"><span>TOP MARGIN (Y OFFSET)</span><span>{offsetY} dots</span></div>
-              <input type="range" min="0" max="100" step="2" value={offsetY} onChange={e => updateOffset('Y', Number(e.target.value))} className="w-full" />
+              <div className="flex justify-between mb-1">
+                <label className="text-xs font-semibold text-gray-600 uppercase">Top Margin (Y Offset)</label>
+                <span className="text-xs text-gray-500">{offsetY} dots</span>
+              </div>
+              <input 
+                type="range" min="0" max="200" step="2" 
+                value={offsetY} onChange={handleOffsetYChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Move the text up or down on the label.</p>
             </div>
 
             {printers.length > 0 && (
               <div className="pt-2 border-t border-gray-200">
-                <label className="text-xs font-semibold block mb-1">Selected Printer</label>
-                <select value={selectedPrinter} onChange={e => { setSelectedPrinter(e.target.value); localStorage.setItem('barcodePrinter', e.target.value) }} className="w-full border p-1.5 rounded text-sm">
-                  {printers.map(p => <option key={p.name} value={p.name}>{p.name}</option>)}
-                </select>
+                <label className="text-xs font-semibold text-gray-600 uppercase mb-1 block">Selected Printer</label>
+                <div className="flex items-center gap-2 text-sm text-gray-600 w-full">
+                  <Printer size={14} className="text-gray-400 shrink-0" />
+                  <select
+                    value={selectedPrinter}
+                    onChange={handlePrinterChange}
+                    className="flex-1 bg-white border border-gray-300 rounded p-1.5 outline-none truncate"
+                  >
+                    {printers.map(p => (
+                      <option key={p.name} value={p.name}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {status === 'done' && <div className="text-green-600 font-medium text-sm p-2 bg-green-50 rounded-lg text-center mt-2"><CheckCircle className="inline mr-1" size={16} /> Sent to {selectedPrinter}</div>}
-        {status === 'error' && <div className="text-red-500 font-medium text-sm p-2 bg-red-50 rounded-lg text-center mt-2"><AlertCircle className="inline mr-1" size={16} /> {errorMsg}</div>}
+        {/* Status */}
+        {status === 'done' && (
+          <div className="flex items-center justify-center gap-2 text-green-600 font-medium text-sm p-2 bg-green-50 rounded-lg">
+            <CheckCircle size={16} /> Sent to {selectedPrinter}
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="flex items-center justify-center gap-2 text-red-500 font-medium text-sm text-center p-2 bg-red-50 rounded-lg">
+            <AlertCircle size={16} /> {errorMsg || 'Print failed'}
+          </div>
+        )}
 
-        <div className="flex gap-3 mt-4">
-          <button onClick={onClose} className="flex-1 py-3 border rounded-xl font-medium hover:bg-gray-50">Cancel</button>
-          <button onClick={handlePrint} disabled={status === 'printing' || status === 'done'} className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-black disabled:opacity-50">
-            <Printer size={18} /> {status === 'printing' ? 'Printing...' : 'Print Tag'}
+        {/* Actions */}
+        <div className="flex gap-3 w-full mt-2">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handlePrint}
+            disabled={status === 'printing' || status === 'done'}
+            className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black flex items-center justify-center gap-2 shadow-lg disabled:opacity-60 transition-colors"
+          >
+            <Printer size={18} />
+            {status === 'printing' ? 'Printing...' : 'Print Tag'}
           </button>
         </div>
       </div>
     </div>
   )
 }
-
