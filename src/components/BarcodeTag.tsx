@@ -60,8 +60,8 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
     '^PR2,2,2',
     `^FO${offsetX},${offsetY}^A0N,22,22^FDSMG^FS`,
     `^FO${offsetX + 80},${offsetY}^A0N,22,22^FD${category}^FS`,
-    // BS: rotated 90° (^A0B = bottom-up rotation) so it reads vertically, saving horizontal space
-    `^FO${offsetX + 14},${offsetY + 26}^A0B,16,16^FD${vendorInitials}^FS`,
+    // BS: horizontal on left below SMG, above QR code
+    `^FO${offsetX},${offsetY + 26}^A0N,20,20^FD${vendorInitials}^FS`,
     `^FO${offsetX + 80},${offsetY + 26}^A0N,22,22^FD${purity}^FS`,
     // W: and weight combined on same line e.g. W:10g
     `^FO${offsetX + 80},${offsetY + 52}^A0N,22,22^FD${grossWt}^FS`,
@@ -267,8 +267,8 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 <div style={{ position: 'absolute', left: squareOffsetX, top: squareOffsetY }}>
                   <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>SMG</div>
                   <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.category}</div>
-                  {/* BS: tilted/rotated vertically to save horizontal space */}
-                  <div style={{ position: 'absolute', left: 14, top: 26, fontSize: '11px', fontWeight: 'bold', color: 'black', writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', lineHeight: '14px' }}>BS</div>
+                  {/* BS: horizontal below SMG */}
+                  <div style={{ position: 'absolute', left: 0, top: 26, fontSize: '14px', fontWeight: 'bold', color: 'black', lineHeight: '16px' }}>BS</div>
                   <div style={{ position: 'absolute', left: 80, top: 26, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.purity}</div>
                   {/* W: and weight on same line */}
                   <div style={{ position: 'absolute', left: 80, top: 52, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black', whiteSpace: 'nowrap' }}>W:{item.gross_wt || 0}g</div>
