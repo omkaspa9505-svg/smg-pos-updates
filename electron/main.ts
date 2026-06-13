@@ -648,18 +648,16 @@ ipcMain.handle('print-zpl', async (event, { zpl, printerName }: { zpl: string, p
   const os = await import('os')
   const path = await import('path')
   const { exec } = await import('child_process')
-
   const tmpFile = path.join(os.tmpdir(), `smg_tag_${Date.now()}.zpl`)
+  const psFile  = path.join(os.tmpdir(), `smg_print_${Date.now()}.ps1`)
   fs.writeFileSync(tmpFile, zpl, 'ascii')
 
-  const escaped = tmpFile.replace(/\\/g, '\\\\')
-  const printerEscaped = printerName.replace(/'/g, "''")
-
-  // Send raw bytes via Windows winspool API through inline C# in PowerShell
+  // Write PowerShell script to a temp file — avoids all command-line escaping issues
   const psScript = `
-$filePath = '${escaped}'
-$pName = '${printerEscaped}'
-$bytes = [System.IO.File]::ReadAllBytes($filePath)
+$filePath = '${tmpFile.replace(/\\/g, '\\\\').replace(/'/g, "''")}'
+$pName    = '${printerName.replace(/'/g, "''")}'
+$bytes    = [System.IO.File]::ReadAllBytes($filePath)
+
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -675,31 +673,62 @@ public class WinSpool {
   [DllImport("winspool.drv")] public static extern bool WritePrinter(IntPtr h, IntPtr b, int c, out int w);
 }
 '@
+
 $hPrinter = [IntPtr]::Zero
-[WinSpool]::OpenPrinter($pName, [ref]$hPrinter, [IntPtr]::Zero) | Out-Null
-$di = New-Object WinSpool+DOCINFO; $di.pDocName = 'ZPL'; $di.pDataType = 'RAW'
-[WinSpool]::StartDocPrinter($hPrinter, 1, $di) | Out-Null
+$opened   = [WinSpool]::OpenPrinter($pName, [ref]$hPrinter, [IntPtr]::Zero)
+if (-not $opened -or $hPrinter -eq [IntPtr]::Zero) {
+  Write-Error "OPEN_PRINTER_FAILED: Could not open printer '$pName'. Check the printer name."
+  exit 1
+}
+
+$di = New-Object WinSpool+DOCINFO
+$di.pDocName  = 'SMG-ZPL'
+$di.pDataType = 'RAW'
+
+$docId = [WinSpool]::StartDocPrinter($hPrinter, 1, $di)
+if ($docId -le 0) {
+  [WinSpool]::ClosePrinter($hPrinter)
+  Write-Error "START_DOC_FAILED: Could not start document on printer '$pName'."
+  exit 1
+}
+
 [WinSpool]::StartPagePrinter($hPrinter) | Out-Null
-$ptr = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($bytes.Length)
+$ptr     = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($bytes.Length)
 [System.Runtime.InteropServices.Marshal]::Copy($bytes, 0, $ptr, $bytes.Length)
 $written = 0
-[WinSpool]::WritePrinter($hPrinter, $ptr, $bytes.Length, [ref]$written) | Out-Null
+$ok      = [WinSpool]::WritePrinter($hPrinter, $ptr, $bytes.Length, [ref]$written)
 [System.Runtime.InteropServices.Marshal]::FreeHGlobal($ptr)
 [WinSpool]::EndPagePrinter($hPrinter) | Out-Null
-[WinSpool]::EndDocPrinter($hPrinter) | Out-Null
-[WinSpool]::ClosePrinter($hPrinter) | Out-Null
-Remove-Item $filePath -Force
+[WinSpool]::EndDocPrinter($hPrinter)  | Out-Null
+[WinSpool]::ClosePrinter($hPrinter)   | Out-Null
+
+if (-not $ok) {
+  Write-Error "WRITE_FAILED: Data sent but WritePrinter returned false. Bytes written: $written"
+  exit 1
+}
+
+Remove-Item $filePath -Force -ErrorAction SilentlyContinue
+Remove-Item '${psFile.replace(/\\/g, '\\\\').replace(/'/g, "''")}' -Force -ErrorAction SilentlyContinue
+Write-Output "OK:$written bytes sent to $pName"
 `
 
+  fs.writeFileSync(psFile, psScript, 'utf8')
+
   return new Promise((resolve, reject) => {
-    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '\\"')}"`,
-      { timeout: 10000 },
+    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${psFile}"`,
+      { timeout: 15000 },
       (err, stdout, stderr) => {
-        if (err) {
-          console.error('ZPL print error:', err, stderr)
-          reject(new Error(stderr || err.message))
+        const out = (stdout || '').trim()
+        const errOut = (stderr || '').trim()
+        console.log('ZPL stdout:', out)
+        if (errOut) console.error('ZPL stderr:', errOut)
+
+        if (err || errOut.includes('FAILED') || errOut.includes('Error')) {
+          try { fs.unlinkSync(psFile) } catch {}
+          try { fs.unlinkSync(tmpFile) } catch {}
+          reject(new Error(errOut || err?.message || 'Unknown print error'))
         } else {
-          resolve(true)
+          resolve(out || true)
         }
       }
     )
