@@ -28,7 +28,7 @@ export default function InvoicePrintModal({
   }
 
   const renderContent = (isPreview: boolean) => (
-    <div className={`bg-white text-black border border-black flex flex-col text-[10px] ${isPreview ? 'w-[210mm] min-h-[148mm] h-max shadow-xl' : 'w-full h-full'}`} style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className={`bg-white text-black border border-black flex flex-col text-[10px] ${isPreview ? 'w-[210mm] h-[148mm] shadow-xl overflow-hidden' : 'w-[210mm] h-[148mm] overflow-hidden'}`} style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header row */}
       <div className="flex border-b border-black">
         {/* Left Customer Info */}
@@ -77,41 +77,59 @@ export default function InvoicePrintModal({
         </thead>
         <tbody>
           {completedInvoice.items && completedInvoice.items.map((i: any, x: number) => (
-            <tr key={x} className="border-b border-black">
-              <td className="border-r border-black py-1 px-0.5 text-center">{x + 1}</td>
-              <td className="border-r border-black py-1 px-0.5">
+            <tr key={x} className="border-b border-black" style={{ height: '18px' }}>
+              <td className="border-r border-black px-0.5 text-center">{x + 1}</td>
+              <td className="border-r border-black px-0.5">
                 <div className="font-bold">{i.category}</div>
                 <div className="text-[6px] text-gray-600">{i.purity} {i.barcode}</div>
               </td>
-              <td className="border-r border-black py-1 px-0.5 text-center">{i.hsn_code}</td>
-              <td className="border-r border-black py-1 px-0.5 text-center">{i.qty || 1}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.gross_wt}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.net_wt}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.rate_per_gram || (i.net_wt ? (i.metal_value / i.net_wt).toFixed(2) : '0.00')}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.va_amount}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.st_amount}</td>
-              <td className="py-1 px-0.5 text-right font-bold">{(i.salePrice || (i.metal_value + i.making_charge)).toFixed(2)}</td>
+              <td className="border-r border-black px-0.5 text-center">{i.hsn_code}</td>
+              <td className="border-r border-black px-0.5 text-center">{i.qty || 1}</td>
+              <td className="border-r border-black px-0.5 text-right">{i.gross_wt}</td>
+              <td className="border-r border-black px-0.5 text-right">{i.net_wt}</td>
+              <td className="border-r border-black px-0.5 text-right">{i.rate_per_gram || (i.net_wt ? (i.metal_value / i.net_wt).toFixed(2) : '0.00')}</td>
+              <td className="border-r border-black px-0.5 text-right">{i.va_amount}</td>
+              <td className="border-r border-black px-0.5 text-right">{i.st_amount}</td>
+              <td className="px-0.5 text-right font-bold">{(i.salePrice || (i.metal_value + i.making_charge)).toFixed(2)}</td>
             </tr>
           ))}
           {completedInvoice.exchanges && completedInvoice.exchanges.map((i: any, x: number) => (
-            <tr key={`exc-${x}`} className="border-b border-black italic text-gray-700">
-              <td className="border-r border-black py-1 px-0.5 text-center">*</td>
-              <td className="border-r border-black py-1 px-0.5">Old {i.metal} Exchange</td>
-              <td className="border-r border-black py-1 px-0.5 text-center">-</td>
-              <td className="border-r border-black py-1 px-0.5 text-center">1</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">{i.gross_wt}</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">-</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">-</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">-</td>
-              <td className="border-r border-black py-1 px-0.5 text-right">-</td>
-              <td className="py-1 px-0.5 text-right text-red-600 font-bold">- {i.value?.toFixed(2) || i.net_value?.toFixed(2)}</td>
+            <tr key={`exc-${x}`} className="border-b border-black italic text-gray-700" style={{ height: '18px' }}>
+              <td className="border-r border-black px-0.5 text-center">*</td>
+              <td className="border-r border-black px-0.5">Old {i.metal} Exchange</td>
+              <td className="border-r border-black px-0.5 text-center">-</td>
+              <td className="border-r border-black px-0.5 text-center">1</td>
+              <td className="border-r border-black px-0.5 text-right">{i.gross_wt}</td>
+              <td className="border-r border-black px-0.5 text-right">-</td>
+              <td className="border-r border-black px-0.5 text-right">-</td>
+              <td className="border-r border-black px-0.5 text-right">-</td>
+              <td className="border-r border-black px-0.5 text-right">-</td>
+              <td className="px-0.5 text-right text-red-600 font-bold">- {i.value?.toFixed(2) || i.net_value?.toFixed(2)}</td>
             </tr>
           ))}
+          {/* Fixed empty rows to always fill 6-row space */}
+          {(() => {
+            const filledRows = (completedInvoice.items?.length || 0) + (completedInvoice.exchanges?.length || 0)
+            const emptyRows = Math.max(0, 6 - filledRows)
+            return Array.from({ length: emptyRows }).map((_, i) => (
+              <tr key={`empty-${i}`} className="border-b border-black" style={{ height: '18px' }}>
+                <td className="border-r border-black px-0.5">&nbsp;</td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="border-r border-black px-0.5"></td>
+                <td className="px-0.5"></td>
+              </tr>
+            ))
+          })()}
         </tbody>
       </table>
 
-      {/* Empty space filler to push footer down */}
-      <div className="flex-1 min-h-[20px]"></div>
+
 
       {/* Footer Section */}
       <div className="flex border-t border-black mt-auto">
