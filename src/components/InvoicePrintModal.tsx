@@ -20,11 +20,19 @@ const SmgLogo = () => (
 )
 
 const BisLogo = () => (
-  <svg viewBox="0 0 100 100" className="h-16 w-auto" fill="none" stroke="currentColor">
-    <path d="M10 90 L50 10 L90 90 Z" strokeWidth="2" stroke="#000" />
-    <circle cx="50" cy="65" r="8" fill="#000" />
-    <text x="50%" y="105%" textAnchor="middle" fontSize="10" strokeWidth="0" fill="#000" fontWeight="bold">BIS HALL MARKED</text>
-  </svg>
+  <div className="flex flex-col items-center">
+    <svg viewBox="0 0 100 100" className="h-14 w-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Outer Triangle */}
+      <path d="M 50 15 L 15 70 A 5 5 0 0 0 20 75 L 80 75 A 5 5 0 0 0 85 70 Z" stroke="#2E308E" strokeWidth="16" strokeLinejoin="round"/>
+      {/* Red Dot */}
+      <circle cx="50" cy="46" r="7" fill="#E2231A"/>
+      {/* Bottom Cutout */}
+      <path d="M 37 78 L 50 54 L 63 78 Z" fill="white"/>
+      {/* Bottom Cup */}
+      <path d="M 10 82 L 20 95 L 80 95 L 90 82" stroke="#2E308E" strokeWidth="6" strokeLinejoin="round" fill="none"/>
+    </svg>
+    <span style={{ fontSize: '7px', fontWeight: 'bold', marginTop: '2px', color: '#000' }}>BIS Hall Marked</span>
+  </div>
 )
 
 const SmgWatermark = () => (
