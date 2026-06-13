@@ -562,7 +562,7 @@ ipcMain.handle('get-sale-items', async (event, sale_id) => {
 })
 
 ipcMain.handle('get-sale-exchanges', async (event, sale_id) => {
-  return await db.all("SELECT * FROM exchanges WHERE sale_id = ?", sale_id)
+  return await db.all("SELECT * FROM exchanges WHERE invoice_id = ?", sale_id)
 })
 
 ipcMain.handle('delete-sale', async (event, id) => {
@@ -614,7 +614,14 @@ ipcMain.handle('print-receipt', async (event, printerName) => {
 })
 
 ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
-  const win = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: false, contextIsolation: true } })
+  const win = new BrowserWindow({ 
+    show: true, 
+    width: 400, 
+    height: 300, 
+    title: "Tag Print Preview",
+    autoHideMenuBar: true,
+    webPreferences: { nodeIntegration: false, contextIsolation: true } 
+  })
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   
   return new Promise((resolve) => {
