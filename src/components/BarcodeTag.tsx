@@ -23,12 +23,14 @@ function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: nu
   const lines = [
     '~SD25',
     '^XA',
+    '^PW456',
+    '^LL101',
     '^PR2,2,2',
-    `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
-    `^FO${rightX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
-    `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
-    huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
-    `^FO${leftX},${offsetY + 22}^BCN,35,Y,N,N^FD${barcode}^FS`,
+    `^FO${rightX},${offsetY}^A0N,20,20^FDSMG Jewellers^FS`,
+    `^FO${rightX},${offsetY + 22}^A0N,18,18^FD${catPurity}^FS`,
+    `^FO${rightX},${offsetY + 44}^A0N,18,18^FD${weights}^FS`,
+    huid ? `^FO${leftX},${offsetY}^A0N,20,20^FD${huid}^FS` : '',
+    `^FO${leftX},${offsetY + (huid ? 22 : 0)}^BCN,40,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -39,14 +41,12 @@ function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: nu
 function generateSquareZpl(item: any, offsetX: number, offsetY: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
   
-  let vendorInitials = '';
+  let vendorInitials = 'BS';
   if (item.vendor_name) {
     const parts = item.vendor_name.trim().split(' ');
     vendorInitials = parts.length > 1 
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : item.vendor_name.substring(0, 2).toUpperCase();
-  } else {
-    vendorInitials = 'BS';
   }
 
   const category = sanitize(item.category || '');
@@ -57,14 +57,16 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
   const lines = [
     '~SD25',
     '^XA',
+    '^PW456',
+    '^LL101',
     '^PR2,2,2',
-    `^FO${offsetX},${offsetY}^A0N,22,22^FDSMG^FS`,
-    `^FO${offsetX + 80},${offsetY}^A0N,22,22^FD${category}^FS`,
-    `^FO${offsetX},${offsetY + 26}^A0N,22,22^FD${vendorInitials}^FS`,
-    `^FO${offsetX + 80},${offsetY + 26}^A0N,22,22^FD${purity}^FS`,
-    `^FO${offsetX + 80},${offsetY + 52}^A0N,22,22^FD${grossWt}^FS`,
-    `^FO${offsetX + 80},${offsetY + 78}^A0N,22,22^FD${identifier}^FS`,
-    `^FO${offsetX},${offsetY + 52}^BQN,2,4^FDQA,${identifier}^FS`,
+    `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG^FS`,
+    `^FO${offsetX + 80},${offsetY}^A0N,18,18^FD${category}^FS`,
+    `^FO${offsetX},${offsetY + 20}^A0N,18,18^FD${vendorInitials}^FS`,
+    `^FO${offsetX + 80},${offsetY + 20}^A0N,18,18^FD${purity}^FS`,
+    `^FO${offsetX + 80},${offsetY + 40}^A0N,18,18^FD${grossWt}^FS`,
+    `^FO${offsetX + 80},${offsetY + 60}^A0N,18,18^FD${identifier}^FS`,
+    `^FO${offsetX},${offsetY + 45}^BQN,2,2^FDQA,${identifier}^FS`,
     '^XZ'
   ]
 
@@ -82,16 +84,16 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const [errorMsg, setErrorMsg] = useState('')
   const [showSettings, setShowSettings] = useState(false)
 
-  // Offsets (use v2 keys to reset old weird settings)
-  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem(`zplOffsetX_v2_${tagFormat}`) || 20))
-  const [offsetY, setOffsetY] = useState(Number(localStorage.getItem(`zplOffsetY_v2_${tagFormat}`) || 10))
-  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap_v2_rat-tail') || 320))
+  // Offsets (use v3 keys to reset old weird settings and apply new dimension limits)
+  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem(`zplOffsetX_v3_${tagFormat}`) || 20))
+  const [offsetY, setOffsetY] = useState(Number(localStorage.getItem(`zplOffsetY_v3_${tagFormat}`) || 10))
+  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap_v3_rat-tail') || 220))
 
   // Update localStorage when format changes so it remembers
   useEffect(() => {
     localStorage.setItem('zplTagFormat', tagFormat)
-    setOffsetX(Number(localStorage.getItem(`zplOffsetX_v2_${tagFormat}`) || 20))
-    setOffsetY(Number(localStorage.getItem(`zplOffsetY_v2_${tagFormat}`) || 10))
+    setOffsetX(Number(localStorage.getItem(`zplOffsetX_v3_${tagFormat}`) || 20))
+    setOffsetY(Number(localStorage.getItem(`zplOffsetY_v3_${tagFormat}`) || 10))
   }, [tagFormat])
 
   useEffect(() => {
@@ -143,13 +145,13 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const updateOffset = (key: 'X' | 'Y' | 'Gap', val: number) => {
     if (key === 'X') {
       setOffsetX(val)
-      localStorage.setItem(`zplOffsetX_v2_${tagFormat}`, String(val))
+      localStorage.setItem(`zplOffsetX_v3_${tagFormat}`, String(val))
     } else if (key === 'Y') {
       setOffsetY(val)
-      localStorage.setItem(`zplOffsetY_v2_${tagFormat}`, String(val))
+      localStorage.setItem(`zplOffsetY_v3_${tagFormat}`, String(val))
     } else if (key === 'Gap') {
       setGap(val)
-      localStorage.setItem('zplGap_v2_rat-tail', String(val))
+      localStorage.setItem('zplGap_v3_rat-tail', String(val))
     }
   }
 
@@ -189,57 +191,49 @@ export default function BarcodeTag({ item, onClose }: Props) {
         </div>
 
         {/* Visual Preview */}
-        <div className="flex flex-col items-center bg-gray-100 py-6 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview (1:1 with Printer Dots)</p>
+        <div className="flex flex-col items-center bg-gray-100 py-6 px-2 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview (456 x 101 dots)</p>
           
-          <div className="relative flex items-start justify-center w-full min-h-[100px]">
+          <div className="relative flex items-center justify-center w-full min-h-[120px] overflow-x-auto">
             {tagFormat === 'rat-tail' ? (
               // RAT TAIL PREVIEW
-              <div className="relative w-[400px] h-[52px]">
-                <div className="absolute top-0 left-0" style={{ width: '800px', height: '104px', transform: 'scale(0.5)', transformOrigin: 'top left' }}>
-                  <div className="flex h-full">
-                    <div className="bg-white rounded-l-3xl border border-gray-300 shadow-sm" style={{ width: '280px' }} />
-                    <div className="bg-white rounded-r-3xl border-y border-r border-gray-300 relative shadow-sm" style={{ width: '280px' }}>
-                      <div className="absolute left-0 top-3 bottom-3 border-l-2 border-dashed border-gray-200" />
-                    </div>
-                    <div className="bg-white border-y border-r border-gray-300 rounded-r-full shadow-sm" style={{ width: '240px', height: '24px' }} />
+              <div className="relative border border-gray-400 bg-white shadow-sm overflow-hidden flex-shrink-0" style={{ width: '456px', height: '101px' }}>
+                <div className="absolute left-0 top-0 w-full h-full pointer-events-none flex">
+                  {/* Visual representation of rat-tail cutouts */}
+                  <div className="w-[220px] h-full border-r-2 border-dashed border-gray-200 bg-white"></div>
+                  <div className="flex-1 h-full bg-white relative">
+                     <div className="absolute top-[30%] bottom-[30%] right-0 w-[40px] border-l border-gray-200 bg-gray-50"></div>
                   </div>
+                </div>
 
-                  <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
-                    {item.huid && <div style={{ fontSize: 18, fontWeight: 800, color: 'black' }}>HUID: {item.huid}</div>}
-                    <div style={{ marginTop: item.huid ? '0' : '22px' }}>
-                      <Barcode value={item.barcode || '000000'} width={2} height={35} fontSize={18} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
-                    </div>
+                <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
+                  {item.huid && <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'black', lineHeight: '20px' }}>HUID: {item.huid}</div>}
+                  <div style={{ marginTop: item.huid ? '2px' : '0' }}>
+                    <Barcode value={item.barcode || '000000'} width={1.5} height={40} fontSize={14} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
                   </div>
+                </div>
 
-                  <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
-                    <div style={{ fontSize: 18, fontWeight: 800, color: 'black' }}>SMG Jewellers</div>
-                    <div style={{ fontSize: 16, fontWeight: 700, textTransform: 'uppercase', color: 'black' }}>{item.category} {item.purity}</div>
-                    <div style={{ fontSize: 16, color: 'black' }}>GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g</div>
-                  </div>
+                <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'black', lineHeight: '20px' }}>SMG Jewellers</div>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', color: 'black', lineHeight: '22px', marginTop: '2px' }}>{item.category} {item.purity}</div>
+                  <div style={{ fontSize: '18px', color: 'black', lineHeight: '22px', marginTop: '2px' }}>GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g</div>
                 </div>
               </div>
             ) : (
               // SQUARE TAG PREVIEW
-              <div className="relative" style={{ width: '200px', height: '150px' }}>
-                <div className="absolute top-0 left-0 bg-white border border-gray-300 shadow-sm rounded-lg flex flex-col p-4" 
-                     style={{ width: '400px', height: '300px', transform: 'scale(0.5)', transformOrigin: 'top left' }}>
-                  <div style={{ position: 'absolute', left: offsetX, top: offsetY, width: '100%', height: '100%'}}>
-                    <div className="flex gap-16">
-                      <div className="flex flex-col gap-2 font-bold text-[28px]">
-                        <span>SMG</span>
-                        <span>{vendorInitials}</span>
-                      </div>
-                      <div className="flex flex-col gap-2 text-[26px] font-semibold leading-snug">
-                        <span>{item.category}</span>
-                        <span>{item.purity}</span>
-                        <span className="mt-2 text-[22px]">W: {item.gross_wt || 0}</span>
-                        <span className="text-[22px] tracking-wide">{item.barcode || item.huid}</span>
-                      </div>
-                    </div>
-                    <div style={{ position: 'absolute', left: 0, top: 110 }}>
-                      <QRCodeSVG value={item.barcode || item.huid || '000000'} size={120} />
-                    </div>
+              <div className="relative border border-gray-400 bg-white shadow-sm overflow-hidden flex-shrink-0" style={{ width: '456px', height: '101px' }}>
+                <div style={{ position: 'absolute', left: offsetX, top: offsetY, width: '100%', height: '100%'}}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>SMG</div>
+                  <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.category}</div>
+                  
+                  <div style={{ position: 'absolute', left: 0, top: 20, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{vendorInitials}</div>
+                  <div style={{ position: 'absolute', left: 80, top: 20, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.purity}</div>
+                  
+                  <div style={{ position: 'absolute', left: 80, top: 40, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>W: {item.gross_wt || 0}</div>
+                  <div style={{ position: 'absolute', left: 80, top: 60, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.barcode || item.huid}</div>
+                  
+                  <div style={{ position: 'absolute', left: 0, top: 45 }}>
+                    <QRCodeSVG value={item.barcode || item.huid || '000000'} size={50} />
                   </div>
                 </div>
               </div>
@@ -269,7 +263,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
 
             <div>
               <div className="flex justify-between mb-2 text-xs font-semibold"><span>TOP MARGIN (Y OFFSET)</span><span>{offsetY} dots</span></div>
-              <input type="range" min="0" max="200" step="2" value={offsetY} onChange={e => updateOffset('Y', Number(e.target.value))} className="w-full" />
+              <input type="range" min="0" max="100" step="2" value={offsetY} onChange={e => updateOffset('Y', Number(e.target.value))} className="w-full" />
             </div>
 
             {printers.length > 0 && (
@@ -296,3 +290,4 @@ export default function BarcodeTag({ item, onClose }: Props) {
     </div>
   )
 }
+
