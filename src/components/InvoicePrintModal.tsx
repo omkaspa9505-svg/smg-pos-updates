@@ -51,7 +51,7 @@ export default function InvoicePrintModal({
   onClose
 }: Props) {
   // Default scale 
-  const [scale, setScale] = useState(1.4)
+  const [scale, setScale] = useState(1.6)
 
   if (!completedInvoice) return null
 
@@ -108,7 +108,7 @@ export default function InvoicePrintModal({
         <div className="flex border-b border-black px-2 py-1 relative z-10 bg-white" style={{ fontSize: `${7 * scale}px`, lineHeight: '1.4' }}>
           <div className="w-1/3">
             <div className="flex"><span className="w-14">Name</span><span>: {completedInvoice.customer_name || ''}</span></div>
-            <div className="flex"><span className="w-14">Phone</span><span>: {completedInvoice.customer_mobile || ''}</span></div>
+            <div className="flex"><span className="w-14">Phone</span><span>: {completedInvoice.customer_mobile || completedInvoice.customer_phone || ''}</span></div>
             <div className="flex"><span className="w-14">Address</span><span>: {completedInvoice.customer_address || ''}</span></div>
             <div className="flex"><span className="w-14">GST</span><span>: {completedInvoice.customer_gst || ''}</span></div>
           </div>
