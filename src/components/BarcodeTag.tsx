@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Barcode from 'react-barcode'
 import { Printer, X, CheckCircle, AlertCircle, Settings2 } from 'lucide-react'
 
@@ -20,7 +20,9 @@ function generateZpl(item: any, offsetX: number, offsetY: number, gap: number): 
   const rightX = offsetX + gap
 
   const lines = [
+    '~SD25', // Set Darkness to 25 (out of 30) for crisp printing on plastic tags
     '^XA',
+    '^PR2,2,2', // Print Rate: 2 inches per second (slower speed = better ribbon transfer)
     // --- RIGHT HALF: Shop Name, Details, Weights ---
     `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
     `^FO${rightX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
@@ -38,7 +40,6 @@ function generateZpl(item: any, offsetX: number, offsetY: number, gap: number): 
 }
 
 export default function BarcodeTag({ item, onClose }: Props) {
-  const printRef = useRef<HTMLDivElement>(null)
   const [printers, setPrinters] = useState<any[]>([])
   const [selectedPrinter, setSelectedPrinter] = useState<string>(localStorage.getItem('barcodePrinter') || '')
   const [status, setStatus] = useState<'idle' | 'printing' | 'done' | 'error'>('idle')
@@ -138,64 +139,62 @@ export default function BarcodeTag({ item, onClose }: Props) {
         </div>
 
         {/* Visual Preview */}
-        <div className="flex flex-col items-center bg-gray-100 py-4 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
-          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-4">Live Print Preview (Scale 1:2)</p>
+        <div className="flex flex-col items-center bg-gray-100 py-6 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview (1:1 with Printer Dots)</p>
           
-          <div className="relative w-[450px] h-[120px] bg-gray-200/50 rounded-lg border border-gray-300 flex items-center justify-start px-[25px] overflow-hidden">
+          {/* Wrapper for scaling to 50% so it fits on screen */}
+          <div className="relative w-[400px] h-[52px] flex items-start justify-start">
             
-            {/* --- PHYSICAL TAG SHAPE BACKGROUND --- */}
-            <div className="absolute flex items-center drop-shadow-md">
-              {/* Left Rectangle (approx 30mm = 240 dots = 120px) */}
-              <div className="bg-white rounded-l-xl border border-gray-300" style={{ width: '120px', height: '48px' }} />
+            {/* 800x104 1:1 Canvas */}
+            <div 
+              className="absolute top-0 left-0 flex items-center justify-start drop-shadow-md"
+              style={{ 
+                width: '800px', 
+                height: '104px', 
+                transform: 'scale(0.5)', 
+                transformOrigin: 'top left',
+                backgroundColor: 'transparent'
+              }}
+            >
+              {/* --- PHYSICAL TAG SHAPE BACKGROUND --- */}
+              {/* Left Rectangle: 280x104 */}
+              <div className="bg-white rounded-l-3xl border border-gray-300 shadow-sm" style={{ width: '280px', height: '104px' }} />
               
-              {/* Right Rectangle (approx 30mm = 240 dots = 120px) */}
-              <div className="bg-white rounded-r-xl border-y border-r border-gray-300 relative flex items-center justify-start" style={{ width: '120px', height: '48px' }}>
-                {/* Perforation dashed line between halves */}
-                <div className="absolute left-0 top-1 bottom-1 w-[1px] border-l-2 border-dashed border-gray-200" />
+              {/* Right Rectangle: 280x104 */}
+              <div className="bg-white rounded-r-3xl border-y border-r border-gray-300 relative shadow-sm" style={{ width: '280px', height: '104px' }}>
+                <div className="absolute left-0 top-3 bottom-3 w-[1px] border-l-[3px] border-dashed border-gray-200" />
               </div>
               
-              {/* Long Tail (approx 40mm = 320 dots = 160px) */}
-              <div className="bg-white border-y border-r border-gray-300 rounded-r-full" style={{ width: '160px', height: '14px' }} />
-            </div>
+              {/* Long Tail: 240x24 */}
+              <div className="bg-white border-y border-r border-gray-300 rounded-r-full shadow-sm" style={{ width: '240px', height: '24px' }} />
 
-            {/* --- PRINTABLE CONTENT OVERLAY --- */}
-            <div className="absolute" style={{ width: '400px', height: '48px' }}>
+              {/* --- PRINTABLE CONTENT OVERLAY --- */}
               {/* Left Half: Barcode and HUID */}
-              <div 
-                style={{ 
-                  position: 'absolute', 
-                  left: offsetX * 0.5, 
-                  top: offsetY * 0.5,
-                  fontFamily: 'sans-serif',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  lineHeight: 1
-                }}
-              >
-                {item.huid && <span style={{ fontSize: 9, fontWeight: 800, marginBottom: 2 }}>{item.huid}</span>}
-                <Barcode value={item.barcode || '0000'} width={0.8} height={20} fontSize={8} margin={0} displayValue={true} />
+              <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
+                {item.huid && (
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                    HUID: {item.huid}
+                  </div>
+                )}
+                <div style={{ position: 'absolute', left: 0, top: 22 }}>
+                  <Barcode value={item.barcode || '000000'} width={2} height={35} fontSize={18} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                </div>
               </div>
 
               {/* Right Half: Shop details */}
-              <div 
-                style={{ 
-                  position: 'absolute', 
-                  left: (offsetX + gap) * 0.5, 
-                  top: offsetY * 0.5,
-                  fontFamily: 'sans-serif',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  lineHeight: 1.2
-                }}
-              >
-                <span style={{ fontSize: 9, fontWeight: 800 }}>SMG Jewellers</span>
-                <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase' }}>
+              <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
+                <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                  SMG Jewellers
+                </div>
+                <div style={{ position: 'absolute', left: 0, top: 22, fontSize: 16, fontWeight: 700, fontFamily: 'sans-serif', whiteSpace: 'nowrap', textTransform: 'uppercase', color: 'black' }}>
                   {item.category} {item.purity}
-                </span>
-                <span style={{ fontSize: 8 }}>GW:{item.gross_wt}g  NW:{item.net_wt}g</span>
+                </div>
+                <div style={{ position: 'absolute', left: 0, top: 44, fontSize: 16, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                  GW:{item.gross_wt || 0}g NW:{item.net_wt || 0}g
+                </div>
               </div>
-            </div>
 
+            </div>
           </div>
         </div>
 
@@ -219,7 +218,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
               <input 
                 type="range" min="0" max="600" step="5"
                 value={offsetX}
-                onChange={(e) => handleOffsetXChange(Number(e.target.value))}
+                onChange={handleOffsetXChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
               />
               <p className="text-[10px] text-gray-400 mt-1">Push the text further right onto the printable area.</p>
@@ -234,7 +233,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
               <input 
                 type="range" min="50" max="600" step="5"
                 value={gap}
-                onChange={(e) => handleGapChange(Number(e.target.value))}
+                onChange={handleGapChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
               />
               <p className="text-[10px] text-gray-400 mt-1">Distance between the Barcode and the Details.</p>
