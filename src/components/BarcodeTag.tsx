@@ -9,16 +9,13 @@ interface Props {
 }
 
 // Generate ZPL for Jewelry Rat-Tail Tag (Split into two halves)
-function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: number): string {
+function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
 
   const catPurity = sanitize(`${item.category || ''} ${item.purity || ''}`)
   const weights   = sanitize(`GW:${item.gross_wt || 0}g SW:${item.stone_wt || 0}g NW:${item.net_wt || 0}g`)
   const huid      = item.huid ? sanitize(`HUID: ${item.huid}`) : ''
   const barcode   = sanitize(item.barcode || '000000')
-
-  const leftX = offsetX
-  const rightX = offsetX + gap
 
   const lines = [
     '~SD25', // Set Darkness to 25 (out of 30) for crisp printing on plastic tags
@@ -91,7 +88,11 @@ export default function BarcodeTag({ item, onClose }: Props) {
   
   const [offsetX, setOffsetX] = useState(getInitialOffsetX(tagFormat))
   const [offsetY, setOffsetY] = useState(getInitialOffsetY(tagFormat))
-  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap') || 150)) // Distance between the two halves
+  
+  // Calculate initial right offset using legacy gap if right offset doesn't exist yet
+  const legacyGap = Number(localStorage.getItem('zplGap') || 150)
+  const legacyLeftX = Number(localStorage.getItem('zplOffsetX') || 250)
+  const [rightOffsetX, setRightOffsetX] = useState(Number(localStorage.getItem('zplRightOffsetX') || (legacyLeftX + legacyGap)))
 
   useEffect(() => {
     localStorage.setItem('zplTagFormat', tagFormat)
@@ -142,10 +143,10 @@ export default function BarcodeTag({ item, onClose }: Props) {
     else localStorage.setItem('zplSquareOffsetY', String(val))
   }
 
-  const handleGapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRightOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
-    setGap(val)
-    if (tagFormat === 'rat-tail') localStorage.setItem('zplGap', String(val))
+    setRightOffsetX(val)
+    if (tagFormat === 'rat-tail') localStorage.setItem('zplRightOffsetX', String(val))
   }
 
   if (!item) return null
@@ -162,7 +163,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
 
     try {
       const zpl = tagFormat === 'rat-tail'
-        ? generateRatTailZpl(item, offsetX, offsetY, gap)
+        ? generateRatTailZpl(item, offsetX, offsetY, rightOffsetX)
         : generateSquareZpl(item, offsetX, offsetY);
 
       await (window as any).api.printZpl({ zpl, printerName: selectedPrinter })
@@ -249,7 +250,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     </div>
                   </div>
 
-                  <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
+                  <div style={{ position: 'absolute', left: rightOffsetX, top: offsetY }}>
                     <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
                       SMG Jewellers
                     </div>
@@ -300,32 +301,32 @@ export default function BarcodeTag({ item, onClose }: Props) {
           <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <div>
               <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
-                <span>LEFT MARGIN (X OFFSET)</span>
+                <span>{tagFormat === 'rat-tail' ? 'LEFT HALF (X OFFSET)' : 'LEFT MARGIN (X OFFSET)'}</span>
                 <span>{offsetX} dots</span>
               </div>
               <input 
-                type="range" min="0" max="600" step="5"
+                type="range" min="-300" max="600" step="5"
                 value={offsetX}
                 onChange={handleOffsetXChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
-              <p className="text-[10px] text-gray-400 mt-1">Push the text further right onto the printable area.</p>
+              <p className="text-[10px] text-gray-400 mt-1">Move the barcode further left or right.</p>
             </div>
 
-            {/* Gap Slider */}
+            {/* Right Half Slider */}
             {tagFormat === 'rat-tail' && (
               <div>
                 <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
-                  <span>GAP BETWEEN HALVES</span>
-                  <span>{gap} dots</span>
+                  <span>RIGHT HALF (X OFFSET)</span>
+                  <span>{rightOffsetX} dots</span>
                 </div>
                 <input 
-                  type="range" min="50" max="600" step="5"
-                  value={gap}
-                  onChange={handleGapChange}
+                  type="range" min="0" max="800" step="5"
+                  value={rightOffsetX}
+                  onChange={handleRightOffsetXChange}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
                 />
-                <p className="text-[10px] text-gray-400 mt-1">Distance between the Barcode and the Details.</p>
+                <p className="text-[10px] text-gray-400 mt-1">Move the text details independently from the barcode.</p>
               </div>
             )}
 
