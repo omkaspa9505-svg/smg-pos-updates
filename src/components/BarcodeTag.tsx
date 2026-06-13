@@ -20,6 +20,8 @@ function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: n
   const lines = [
     '~SD25', // Set Darkness to 25 (out of 30) for crisp printing on plastic tags
     '^XA',
+    '^PW507', // Hardcode 2.5 inch print width (203dpi)
+    '^LL101', // Hardcode 0.5 inch label length (203dpi)
     '^PR2,2,2', // Print Rate: 2 inches per second (slower = better ribbon transfer)
     // --- RIGHT HALF: Shop Name, Details, Weights ---
     `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
@@ -57,6 +59,8 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
   const lines = [
     '~SD25',
     '^XA',
+    '^PW507', // Hardcode 2.5 inch print width
+    '^LL101', // Hardcode 0.5 inch label length
     '^PR2,2,2',
     `^FO${offsetX},${offsetY}^A0N,22,22^FDSMG^FS`,
     `^FO${offsetX + 80},${offsetY}^A0N,22,22^FD${category}^FS`,
