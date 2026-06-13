@@ -41,7 +41,8 @@
       "dist-electron/**/*"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "artifactName": "SMG-POS-Setup-${version}.${ext}"
     },
     "publish": [
       {
