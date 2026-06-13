@@ -7,8 +7,8 @@ interface Props {
   onClose: () => void
 }
 
-// Generate ZPL for Jewelry Rat-Tail Tag
-function generateZpl(item: any, offsetX: number, offsetY: number): string {
+// Generate ZPL for Jewelry Rat-Tail Tag (Split into two halves)
+function generateZpl(item: any, offsetX: number, offsetY: number, gap: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 30)
 
   const catPurity = sanitize(`${item.category || ''} ${item.purity || ''}`)
@@ -16,22 +16,21 @@ function generateZpl(item: any, offsetX: number, offsetY: number): string {
   const huid      = item.huid ? sanitize(`HUID: ${item.huid}`) : ''
   const barcode   = sanitize(item.barcode || '000000')
 
-  // Jewelry tags are usually fed so the long axis (rat tail + printable rect) is along the printhead width (X-axis).
-  // The printable rectangle is at the far end of the X-axis.
-  // We use the offsetX to push the print area into the printable rectangle.
-  // Height (Y-axis) is very small, so we use tiny fonts and tight spacing.
+  const leftX = offsetX
+  const rightX = offsetX + gap
+
   const lines = [
     '^XA',
-    // Shop Name
-    `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
-    // Category & Purity
-    `^FO${offsetX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
-    // Weights
-    `^FO${offsetX},${offsetY + 40}^A0N,16,16^FD${weights}^FS`,
-    // HUID if present
-    huid ? `^FO${offsetX},${offsetY + 58}^A0N,16,16^FD${huid}^FS` : '',
-    // Barcode - small height (30 dots)
-    `^FO${offsetX},${huid ? offsetY + 76 : offsetY + 58}^BCN,30,Y,N,N^FD${barcode}^FS`,
+    // --- RIGHT HALF: Shop Name, Details, Weights ---
+    `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
+    `^FO${rightX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
+    `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
+    
+    // --- LEFT HALF: Barcode & HUID ---
+    // If HUID exists, print it above the barcode
+    huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
+    // Barcode - height 35 dots
+    `^FO${leftX},${offsetY + 22}^BCN,35,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -47,8 +46,9 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const [showSettings, setShowSettings] = useState(false)
 
   // Jewelry tag offsets
-  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem('zplOffsetX') || 380))
+  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem('zplOffsetX') || 250))
   const [offsetY, setOffsetY] = useState(Number(localStorage.getItem('zplOffsetY') || 10))
+  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap') || 150)) // Distance between the two halves
 
   useEffect(() => {
     if ((window as any).api) {
@@ -91,6 +91,12 @@ export default function BarcodeTag({ item, onClose }: Props) {
     localStorage.setItem('zplOffsetY', String(val))
   }
 
+  const handleGapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value)
+    setGap(val)
+    localStorage.setItem('zplGap', String(val))
+  }
+
   if (!item) return null
 
   const handlePrint = async () => {
@@ -104,7 +110,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
     setErrorMsg('')
 
     try {
-      const zpl = generateZpl(item, offsetX, offsetY)
+      const zpl = generateZpl(item, offsetX, offsetY, gap)
       await (window as any).api.printZpl({ zpl, printerName: selectedPrinter })
       setStatus('done')
       setTimeout(() => onClose(), 2000)
@@ -170,7 +176,20 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 value={offsetX} onChange={handleOffsetXChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
-              <p className="text-[10px] text-gray-400 mt-1">Increase this to push the text further right onto the printable area.</p>
+              <p className="text-[10px] text-gray-400 mt-1">Push the text further right onto the printable area.</p>
+            </div>
+
+            <div>
+              <div className="flex justify-between mb-1">
+                <label className="text-xs font-semibold text-gray-600 uppercase">Gap between Halves</label>
+                <span className="text-xs text-gray-500">{gap} dots</span>
+              </div>
+              <input 
+                type="range" min="50" max="400" step="5" 
+                value={gap} onChange={handleGapChange}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <p className="text-[10px] text-gray-400 mt-1">Distance between the Barcode and the Details.</p>
             </div>
 
             <div>
@@ -183,7 +202,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 value={offsetY} onChange={handleOffsetYChange}
                 className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
               />
-              <p className="text-[10px] text-gray-400 mt-1">Adjust this to move the text up or down on the label.</p>
+              <p className="text-[10px] text-gray-400 mt-1">Move the text up or down on the label.</p>
             </div>
 
             {printers.length > 0 && (
