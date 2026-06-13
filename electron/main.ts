@@ -614,14 +614,7 @@ ipcMain.handle('print-receipt', async (event, printerName) => {
 })
 
 ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
-  const win = new BrowserWindow({ 
-    show: true, 
-    width: 400, 
-    height: 300, 
-    title: "Tag Print Preview",
-    autoHideMenuBar: true,
-    webPreferences: { nodeIntegration: false, contextIsolation: true } 
-  })
+  const win = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: false, contextIsolation: true } })
   await win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   
   return new Promise((resolve) => {
@@ -646,6 +639,70 @@ ipcMain.handle('print-html', async (event, { html, printerName, options }) => {
         resolve(success)
       })
     })
+  })
+})
+
+// ZPL Raw Print (Zebra USB via Windows Spooler — no dialog, instant)
+ipcMain.handle('print-zpl', async (event, { zpl, printerName }: { zpl: string, printerName: string }) => {
+  const fs = await import('fs')
+  const os = await import('os')
+  const path = await import('path')
+  const { exec } = await import('child_process')
+
+  const tmpFile = path.join(os.tmpdir(), `smg_tag_${Date.now()}.zpl`)
+  fs.writeFileSync(tmpFile, zpl, 'ascii')
+
+  const escaped = tmpFile.replace(/\\/g, '\\\\')
+  const printerEscaped = printerName.replace(/'/g, "''")
+
+  // Send raw bytes via Windows winspool API through inline C# in PowerShell
+  const psScript = `
+$filePath = '${escaped}'
+$pName = '${printerEscaped}'
+$bytes = [System.IO.File]::ReadAllBytes($filePath)
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public class WinSpool {
+  [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+  public class DOCINFO { public string pDocName; public string pOutputFile; public string pDataType; }
+  [DllImport("winspool.drv", CharSet=CharSet.Auto)] public static extern bool OpenPrinter(string n, out IntPtr h, IntPtr d);
+  [DllImport("winspool.drv")] public static extern bool ClosePrinter(IntPtr h);
+  [DllImport("winspool.drv", CharSet=CharSet.Auto)] public static extern int StartDocPrinter(IntPtr h, int l, [In, MarshalAs(UnmanagedType.LPStruct)] DOCINFO d);
+  [DllImport("winspool.drv")] public static extern bool EndDocPrinter(IntPtr h);
+  [DllImport("winspool.drv")] public static extern bool StartPagePrinter(IntPtr h);
+  [DllImport("winspool.drv")] public static extern bool EndPagePrinter(IntPtr h);
+  [DllImport("winspool.drv")] public static extern bool WritePrinter(IntPtr h, IntPtr b, int c, out int w);
+}
+'@
+$hPrinter = [IntPtr]::Zero
+[WinSpool]::OpenPrinter($pName, [ref]$hPrinter, [IntPtr]::Zero) | Out-Null
+$di = New-Object WinSpool+DOCINFO; $di.pDocName = 'ZPL'; $di.pDataType = 'RAW'
+[WinSpool]::StartDocPrinter($hPrinter, 1, $di) | Out-Null
+[WinSpool]::StartPagePrinter($hPrinter) | Out-Null
+$ptr = [System.Runtime.InteropServices.Marshal]::AllocHGlobal($bytes.Length)
+[System.Runtime.InteropServices.Marshal]::Copy($bytes, 0, $ptr, $bytes.Length)
+$written = 0
+[WinSpool]::WritePrinter($hPrinter, $ptr, $bytes.Length, [ref]$written) | Out-Null
+[System.Runtime.InteropServices.Marshal]::FreeHGlobal($ptr)
+[WinSpool]::EndPagePrinter($hPrinter) | Out-Null
+[WinSpool]::EndDocPrinter($hPrinter) | Out-Null
+[WinSpool]::ClosePrinter($hPrinter) | Out-Null
+Remove-Item $filePath -Force
+`
+
+  return new Promise((resolve, reject) => {
+    exec(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '\\"')}"`,
+      { timeout: 10000 },
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error('ZPL print error:', err, stderr)
+          reject(new Error(stderr || err.message))
+        } else {
+          resolve(true)
+        }
+      }
+    )
   })
 })
 
