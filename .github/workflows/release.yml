@@ -30,3 +30,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx electron-builder --win -p always
+
+      - name: Mark Release as Published (Not Draft)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $VERSION = node -p "require('./package.json').version"
+          gh release edit v$VERSION --draft=false --latest --repo omkaspa9505-svg/smg-pos-updates
+
