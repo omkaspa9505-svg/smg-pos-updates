@@ -32,8 +32,8 @@ function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: nu
     // --- LEFT HALF: Barcode & HUID ---
     // If HUID exists, print it above the barcode
     huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
-    // Barcode - compressed width and height 30 dots
-    `^FO${leftX},${offsetY + 22}^BY1,2,30^BCN,30,Y,N,N^FD${barcode}^FS`,
+    // Barcode - height 35 dots
+    `^FO${leftX},${offsetY + 22}^BCN,35,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -76,7 +76,7 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
 
 export default function BarcodeTag({ item, onClose }: Props) {
   const [tagFormat, setTagFormat] = useState<'rat-tail' | 'square'>(
-    (localStorage.getItem('zplTagFormat_v4') as 'rat-tail' | 'square') || 'rat-tail'
+    (localStorage.getItem('zplTagFormat') as 'rat-tail' | 'square') || 'rat-tail'
   )
 
   const [printers, setPrinters] = useState<any[]>([])
@@ -86,14 +86,17 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const [showSettings, setShowSettings] = useState(false)
 
   // Jewelry tag offsets
-  const [offsetX, setOffsetX] = useState(Number(localStorage.getItem(`zplOffsetX_v4_${tagFormat}`) || (tagFormat === 'rat-tail' ? 250 : 20)))
-  const [offsetY, setOffsetY] = useState(Number(localStorage.getItem(`zplOffsetY_v4_${tagFormat}`) || 10))
-  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap_v4') || 150)) // Distance between the two halves
+  const getInitialOffsetX = (format: string) => format === 'rat-tail' ? Number(localStorage.getItem('zplOffsetX') || 250) : Number(localStorage.getItem('zplSquareOffsetX') || 20)
+  const getInitialOffsetY = (format: string) => format === 'rat-tail' ? Number(localStorage.getItem('zplOffsetY') || 10) : Number(localStorage.getItem('zplSquareOffsetY') || 10)
+  
+  const [offsetX, setOffsetX] = useState(getInitialOffsetX(tagFormat))
+  const [offsetY, setOffsetY] = useState(getInitialOffsetY(tagFormat))
+  const [gap, setGap] = useState(Number(localStorage.getItem('zplGap') || 150)) // Distance between the two halves
 
   useEffect(() => {
-    localStorage.setItem('zplTagFormat_v4', tagFormat)
-    setOffsetX(Number(localStorage.getItem(`zplOffsetX_v4_${tagFormat}`) || (tagFormat === 'rat-tail' ? 250 : 20)))
-    setOffsetY(Number(localStorage.getItem(`zplOffsetY_v4_${tagFormat}`) || 10))
+    localStorage.setItem('zplTagFormat', tagFormat)
+    setOffsetX(getInitialOffsetX(tagFormat))
+    setOffsetY(getInitialOffsetY(tagFormat))
   }, [tagFormat])
 
   useEffect(() => {
@@ -128,19 +131,21 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setOffsetX(val)
-    localStorage.setItem(`zplOffsetX_v4_${tagFormat}`, String(val))
+    if (tagFormat === 'rat-tail') localStorage.setItem('zplOffsetX', String(val))
+    else localStorage.setItem('zplSquareOffsetX', String(val))
   }
 
   const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setOffsetY(val)
-    localStorage.setItem(`zplOffsetY_v4_${tagFormat}`, String(val))
+    if (tagFormat === 'rat-tail') localStorage.setItem('zplOffsetY', String(val))
+    else localStorage.setItem('zplSquareOffsetY', String(val))
   }
 
   const handleGapChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setGap(val)
-    localStorage.setItem('zplGap_v4', String(val))
+    if (tagFormat === 'rat-tail') localStorage.setItem('zplGap', String(val))
   }
 
   if (!item) return null
@@ -240,7 +245,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                       </div>
                     )}
                     <div style={{ position: 'absolute', left: 0, top: 22 }}>
-                      <Barcode value={item.barcode || '000000'} width={1.5} height={30} fontSize={16} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                      <Barcode value={item.barcode || '000000'} width={2} height={35} fontSize={18} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
                     </div>
                   </div>
 
