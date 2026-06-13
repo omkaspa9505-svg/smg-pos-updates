@@ -138,18 +138,50 @@ export default function BarcodeTag({ item, onClose }: Props) {
         </div>
 
         {/* Visual Preview */}
-        <div className="flex justify-center bg-gray-50 py-4 rounded-xl border border-gray-100">
-          <div ref={printRef} style={{ fontFamily: 'sans-serif', width: 220, border: '1px dashed #ccc', padding: 8, backgroundColor: 'white' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
-              <span style={{ fontSize: 11, fontWeight: 800 }}>SMG Jewellers</span>
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>
-                {item.category} • {item.purity}
+        <div className="flex flex-col items-center bg-gray-50 py-4 rounded-xl border border-gray-100 overflow-hidden">
+          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Live Print Preview</p>
+          <div 
+            className="relative bg-white border-2 border-dashed border-gray-300 shadow-sm"
+            style={{ width: 400, height: 100, overflow: 'hidden' }}
+          >
+            {/* 
+              Scale mapping: 800 ZPL dots = 400px (scale = 0.5)
+              So 1 dot = 0.5px 
+            */}
+            
+            {/* Left Half: Barcode and HUID */}
+            <div 
+              style={{ 
+                position: 'absolute', 
+                left: offsetX * 0.5, 
+                top: offsetY * 0.5,
+                fontFamily: 'sans-serif',
+                display: 'flex',
+                flexDirection: 'column',
+                lineHeight: 1
+              }}
+            >
+              {item.huid && <span style={{ fontSize: 9, fontWeight: 800, marginBottom: 2 }}>{item.huid}</span>}
+              <Barcode value={item.barcode || '0000'} width={0.8} height={20} fontSize={8} margin={0} displayValue={true} />
+            </div>
+
+            {/* Right Half: Shop details */}
+            <div 
+              style={{ 
+                position: 'absolute', 
+                left: (offsetX + gap) * 0.5, 
+                top: offsetY * 0.5,
+                fontFamily: 'sans-serif',
+                display: 'flex',
+                flexDirection: 'column',
+                lineHeight: 1.2
+              }}
+            >
+              <span style={{ fontSize: 9, fontWeight: 800 }}>SMG Jewellers</span>
+              <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase' }}>
+                {item.category} {item.purity}
               </span>
-              <span style={{ fontSize: 9 }}>GW: <strong>{item.gross_wt}g</strong> | NW: <strong>{item.net_wt}g</strong></span>
-              {item.huid && <span style={{ fontSize: 9 }}>HUID: <strong>{item.huid}</strong></span>}
-              <div style={{ marginTop: 4, width: '100%' }}>
-                <Barcode value={item.barcode} width={1} height={25} fontSize={9} margin={0} displayValue={true} />
-              </div>
+              <span style={{ fontSize: 8 }}>GW:{item.gross_wt}g  NW:{item.net_wt}g</span>
             </div>
           </div>
         </div>
