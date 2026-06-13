@@ -26,11 +26,11 @@ function generateRatTailZpl(item: any, offsetX: number, offsetY: number, gap: nu
     '^PW456',
     '^LL101',
     '^PR2,2,2',
-    `^FO${rightX},${offsetY}^A0N,20,20^FDSMG Jewellers^FS`,
-    `^FO${rightX},${offsetY + 22}^A0N,18,18^FD${catPurity}^FS`,
-    `^FO${rightX},${offsetY + 44}^A0N,18,18^FD${weights}^FS`,
-    huid ? `^FO${leftX},${offsetY}^A0N,20,20^FD${huid}^FS` : '',
-    `^FO${leftX},${offsetY + (huid ? 22 : 0)}^BCN,40,Y,N,N^FD${barcode}^FS`,
+    `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
+    `^FO${rightX},${offsetY + 20}^A0N,16,16^FD${catPurity}^FS`,
+    `^FO${rightX},${offsetY + 40}^A0N,15,15^FD${weights}^FS`,
+    huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
+    `^FO${leftX},${offsetY + (huid ? 20 : 0)}^BCN,35,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -60,13 +60,13 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
     '^PW456',
     '^LL101',
     '^PR2,2,2',
-    `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG^FS`,
-    `^FO${offsetX + 80},${offsetY}^A0N,18,18^FD${category}^FS`,
-    `^FO${offsetX},${offsetY + 20}^A0N,18,18^FD${vendorInitials}^FS`,
-    `^FO${offsetX + 80},${offsetY + 20}^A0N,18,18^FD${purity}^FS`,
-    `^FO${offsetX + 80},${offsetY + 40}^A0N,18,18^FD${grossWt}^FS`,
-    `^FO${offsetX + 80},${offsetY + 60}^A0N,18,18^FD${identifier}^FS`,
-    `^FO${offsetX},${offsetY + 45}^BQN,2,2^FDQA,${identifier}^FS`,
+    `^FO${offsetX},${offsetY}^A0N,16,16^FDSMG^FS`,
+    `^FO${offsetX + 80},${offsetY}^A0N,16,16^FD${category}^FS`,
+    `^FO${offsetX},${offsetY + 18}^A0N,16,16^FD${vendorInitials}^FS`,
+    `^FO${offsetX + 80},${offsetY + 18}^A0N,16,16^FD${purity}^FS`,
+    `^FO${offsetX + 80},${offsetY + 36}^A0N,16,16^FD${grossWt}^FS`,
+    `^FO${offsetX + 80},${offsetY + 54}^A0N,16,16^FD${identifier}^FS`,
+    `^FO${offsetX},${offsetY + 40}^BQN,2,2^FDQA,${identifier}^FS`,
     '^XZ'
   ]
 
@@ -207,33 +207,33 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 </div>
 
                 <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
-                  {item.huid && <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'black', lineHeight: '20px' }}>HUID: {item.huid}</div>}
+                  {item.huid && <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'black', lineHeight: '18px' }}>HUID: {item.huid}</div>}
                   <div style={{ marginTop: item.huid ? '2px' : '0' }}>
-                    <Barcode value={item.barcode || '000000'} width={1.5} height={40} fontSize={14} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                    <Barcode value={item.barcode || '000000'} width={1.2} height={35} fontSize={12} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
                   </div>
                 </div>
 
                 <div style={{ position: 'absolute', left: offsetX + gap, top: offsetY }}>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'black', lineHeight: '20px' }}>SMG Jewellers</div>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', color: 'black', lineHeight: '22px', marginTop: '2px' }}>{item.category} {item.purity}</div>
-                  <div style={{ fontSize: '18px', color: 'black', lineHeight: '22px', marginTop: '2px' }}>GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g</div>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', color: 'black', lineHeight: '18px' }}>SMG Jewellers</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', textTransform: 'uppercase', color: 'black', lineHeight: '20px', marginTop: '2px' }}>{item.category} {item.purity}</div>
+                  <div style={{ fontSize: '15px', color: 'black', lineHeight: '20px', marginTop: '0px' }}>GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g</div>
                 </div>
               </div>
             ) : (
               // SQUARE TAG PREVIEW
               <div className="relative border border-gray-400 bg-white shadow-sm overflow-hidden flex-shrink-0" style={{ width: '456px', height: '101px' }}>
                 <div style={{ position: 'absolute', left: offsetX, top: offsetY, width: '100%', height: '100%'}}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>SMG</div>
-                  <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.category}</div>
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>SMG</div>
+                  <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.category}</div>
                   
-                  <div style={{ position: 'absolute', left: 0, top: 20, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{vendorInitials}</div>
-                  <div style={{ position: 'absolute', left: 80, top: 20, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.purity}</div>
+                  <div style={{ position: 'absolute', left: 0, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{vendorInitials}</div>
+                  <div style={{ position: 'absolute', left: 80, top: 18, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.purity}</div>
                   
-                  <div style={{ position: 'absolute', left: 80, top: 40, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>W: {item.gross_wt || 0}</div>
-                  <div style={{ position: 'absolute', left: 80, top: 60, fontSize: '18px', fontWeight: 'bold', lineHeight: '20px', color: 'black' }}>{item.barcode || item.huid}</div>
+                  <div style={{ position: 'absolute', left: 80, top: 36, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>W: {item.gross_wt || 0}</div>
+                  <div style={{ position: 'absolute', left: 80, top: 54, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.barcode || item.huid}</div>
                   
-                  <div style={{ position: 'absolute', left: 0, top: 45 }}>
-                    <QRCodeSVG value={item.barcode || item.huid || '000000'} size={50} />
+                  <div style={{ position: 'absolute', left: 0, top: 40 }}>
+                    <QRCodeSVG value={item.barcode || item.huid || '000000'} size={45} />
                   </div>
                 </div>
               </div>
