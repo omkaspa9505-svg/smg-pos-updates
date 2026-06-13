@@ -26,15 +26,36 @@ jobs:
       - name: Build Application
         run: npm run build
 
-      - name: Publish Release
+      - name: Build Electron App (no auto-publish)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win -p always
+        run: npx electron-builder --win --publish never
 
-      - name: Mark Release as Published (Not Draft)
+      - name: Create GitHub Release and Upload Assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $VERSION = node -p "require('./package.json').version"
-          gh release edit v$VERSION --draft=false --latest --repo omkaspa9505-svg/smg-pos-updates
+          $TAG = "v$VERSION"
+          # Create the release (not draft)
+          gh release create $TAG --title "$VERSION" --notes "SMG POS $VERSION" --repo omkaspa9505-svg/smg-pos-updates
+          # Upload the installer exe
+          $EXE = Get-ChildItem "build-output" -Filter "*.exe" | Where-Object { $_.Name -notlike "*uninstaller*" } | Select-Object -First 1
+          if ($EXE) {
+            Write-Host "Uploading $($EXE.FullName)"
+            gh release upload $TAG $EXE.FullName --repo omkaspa9505-svg/smg-pos-updates --clobber
+          } else {
+            Write-Error "No exe found in build-output!"
+            exit 1
+          }
+          # Upload blockmap
+          $BLOCKMAP = Get-ChildItem "build-output" -Filter "*.blockmap" | Select-Object -First 1
+          if ($BLOCKMAP) {
+            gh release upload $TAG $BLOCKMAP.FullName --repo omkaspa9505-svg/smg-pos-updates --clobber
+          }
+          # Upload latest.yml for auto-updater
+          $LATESTYML = Get-ChildItem "build-output" -Filter "latest.yml" | Select-Object -First 1
+          if ($LATESTYML) {
+            gh release upload $TAG $LATESTYML.FullName --repo omkaspa9505-svg/smg-pos-updates --clobber
+          }
 
