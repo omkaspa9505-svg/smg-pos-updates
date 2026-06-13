@@ -9,10 +9,10 @@ interface Props {
 
 // Generate ZPL for Jewelry Rat-Tail Tag (Split into two halves)
 function generateZpl(item: any, offsetX: number, offsetY: number, gap: number): string {
-  const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 30)
+  const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
 
   const catPurity = sanitize(`${item.category || ''} ${item.purity || ''}`)
-  const weights   = sanitize(`GW:${item.gross_wt || 0}g  NW:${item.net_wt || 0}g`)
+  const weights   = sanitize(`GW:${item.gross_wt || 0}g SW:${item.stone_wt || 0}g NW:${item.net_wt || 0}g`)
   const huid      = item.huid ? sanitize(`HUID: ${item.huid}`) : ''
   const barcode   = sanitize(item.barcode || '000000')
 
@@ -190,7 +190,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                   {item.category} {item.purity}
                 </div>
                 <div style={{ position: 'absolute', left: 0, top: 44, fontSize: 16, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
-                  GW:{item.gross_wt || 0}g NW:{item.net_wt || 0}g
+                  GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g
                 </div>
               </div>
 
