@@ -55,7 +55,13 @@ export default function BarcodeTag({ item, onClose }: Props) {
         if (stored && list.find(p => p.name === stored)) {
           setSelectedPrinter(stored)
         } else {
-          const zebra = list.find(p => p.name.toLowerCase().includes('zebra'))
+          // Zebra printers show as "ZDesigner ..." with official driver
+          const zebra = list.find(p => 
+            p.name.toLowerCase().includes('zebra') || 
+            p.name.toLowerCase().includes('zdesigner') ||
+            p.name.toLowerCase().includes('zd') ||
+            p.name.toLowerCase().includes('zt')
+          )
           const def = zebra || list.find(p => p.isDefault) || list[0]
           if (def) {
             setSelectedPrinter(def.name)
