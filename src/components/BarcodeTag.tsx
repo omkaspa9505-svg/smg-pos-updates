@@ -138,51 +138,64 @@ export default function BarcodeTag({ item, onClose }: Props) {
         </div>
 
         {/* Visual Preview */}
-        <div className="flex flex-col items-center bg-gray-50 py-4 rounded-xl border border-gray-100 overflow-hidden">
-          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-2">Live Print Preview</p>
-          <div 
-            className="relative bg-white border-2 border-dashed border-gray-300 shadow-sm"
-            style={{ width: 400, height: 100, overflow: 'hidden' }}
-          >
-            {/* 
-              Scale mapping: 800 ZPL dots = 400px (scale = 0.5)
-              So 1 dot = 0.5px 
-            */}
+        <div className="flex flex-col items-center bg-gray-100 py-4 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
+          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-4">Live Print Preview (Scale 1:2)</p>
+          
+          <div className="relative w-[450px] h-[120px] bg-gray-200/50 rounded-lg border border-gray-300 flex items-center justify-start px-[25px] overflow-hidden">
             
-            {/* Left Half: Barcode and HUID */}
-            <div 
-              style={{ 
-                position: 'absolute', 
-                left: offsetX * 0.5, 
-                top: offsetY * 0.5,
-                fontFamily: 'sans-serif',
-                display: 'flex',
-                flexDirection: 'column',
-                lineHeight: 1
-              }}
-            >
-              {item.huid && <span style={{ fontSize: 9, fontWeight: 800, marginBottom: 2 }}>{item.huid}</span>}
-              <Barcode value={item.barcode || '0000'} width={0.8} height={20} fontSize={8} margin={0} displayValue={true} />
+            {/* --- PHYSICAL TAG SHAPE BACKGROUND --- */}
+            <div className="absolute flex items-center drop-shadow-md">
+              {/* Left Rectangle (approx 30mm = 240 dots = 120px) */}
+              <div className="bg-white rounded-l-xl border border-gray-300" style={{ width: '120px', height: '48px' }} />
+              
+              {/* Right Rectangle (approx 30mm = 240 dots = 120px) */}
+              <div className="bg-white rounded-r-xl border-y border-r border-gray-300 relative flex items-center justify-start" style={{ width: '120px', height: '48px' }}>
+                {/* Perforation dashed line between halves */}
+                <div className="absolute left-0 top-1 bottom-1 w-[1px] border-l-2 border-dashed border-gray-200" />
+              </div>
+              
+              {/* Long Tail (approx 40mm = 320 dots = 160px) */}
+              <div className="bg-white border-y border-r border-gray-300 rounded-r-full" style={{ width: '160px', height: '14px' }} />
             </div>
 
-            {/* Right Half: Shop details */}
-            <div 
-              style={{ 
-                position: 'absolute', 
-                left: (offsetX + gap) * 0.5, 
-                top: offsetY * 0.5,
-                fontFamily: 'sans-serif',
-                display: 'flex',
-                flexDirection: 'column',
-                lineHeight: 1.2
-              }}
-            >
-              <span style={{ fontSize: 9, fontWeight: 800 }}>SMG Jewellers</span>
-              <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase' }}>
-                {item.category} {item.purity}
-              </span>
-              <span style={{ fontSize: 8 }}>GW:{item.gross_wt}g  NW:{item.net_wt}g</span>
+            {/* --- PRINTABLE CONTENT OVERLAY --- */}
+            <div className="absolute" style={{ width: '400px', height: '48px' }}>
+              {/* Left Half: Barcode and HUID */}
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  left: offsetX * 0.5, 
+                  top: offsetY * 0.5,
+                  fontFamily: 'sans-serif',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  lineHeight: 1
+                }}
+              >
+                {item.huid && <span style={{ fontSize: 9, fontWeight: 800, marginBottom: 2 }}>{item.huid}</span>}
+                <Barcode value={item.barcode || '0000'} width={0.8} height={20} fontSize={8} margin={0} displayValue={true} />
+              </div>
+
+              {/* Right Half: Shop details */}
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  left: (offsetX + gap) * 0.5, 
+                  top: offsetY * 0.5,
+                  fontFamily: 'sans-serif',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  lineHeight: 1.2
+                }}
+              >
+                <span style={{ fontSize: 9, fontWeight: 800 }}>SMG Jewellers</span>
+                <span style={{ fontSize: 8, fontWeight: 700, textTransform: 'uppercase' }}>
+                  {item.category} {item.purity}
+                </span>
+                <span style={{ fontSize: 8 }}>GW:{item.gross_wt}g  NW:{item.net_wt}g</span>
+              </div>
             </div>
+
           </div>
         </div>
 
@@ -199,27 +212,30 @@ export default function BarcodeTag({ item, onClose }: Props) {
         {showSettings && (
           <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
             <div>
-              <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-gray-600 uppercase">Left Margin (X Offset)</label>
-                <span className="text-xs text-gray-500">{offsetX} dots</span>
+              <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
+                <span>LEFT MARGIN (X OFFSET)</span>
+                <span>{offsetX} dots</span>
               </div>
               <input 
-                type="range" min="0" max="800" step="10" 
-                value={offsetX} onChange={handleOffsetXChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                type="range" min="0" max="600" step="5"
+                value={offsetX}
+                onChange={(e) => handleOffsetXChange(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
               />
               <p className="text-[10px] text-gray-400 mt-1">Push the text further right onto the printable area.</p>
             </div>
 
+            {/* Gap Slider */}
             <div>
-              <div className="flex justify-between mb-1">
-                <label className="text-xs font-semibold text-gray-600 uppercase">Gap between Halves</label>
-                <span className="text-xs text-gray-500">{gap} dots</span>
+              <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
+                <span>GAP BETWEEN HALVES</span>
+                <span>{gap} dots</span>
               </div>
               <input 
-                type="range" min="50" max="400" step="5" 
-                value={gap} onChange={handleGapChange}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                type="range" min="50" max="600" step="5"
+                value={gap}
+                onChange={(e) => handleGapChange(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
               />
               <p className="text-[10px] text-gray-400 mt-1">Distance between the Barcode and the Details.</p>
             </div>
