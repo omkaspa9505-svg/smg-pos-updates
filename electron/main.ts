@@ -161,6 +161,7 @@ async function setupDatabase() {
     try { await db.exec('ALTER TABLE sales ADD COLUMN cgst REAL;'); } catch (e) {}
     try { await db.exec('ALTER TABLE sales ADD COLUMN sgst REAL;'); } catch (e) {}
     try { await db.exec('ALTER TABLE sales ADD COLUMN taxable_amount REAL;'); } catch (e) {}
+    try { await db.exec('ALTER TABLE sales ADD COLUMN customer_address TEXT;'); } catch (e) {}
     try { await db.exec('ALTER TABLE sale_items ADD COLUMN hsn_code TEXT;'); } catch (e) {}
     try { await db.exec('ALTER TABLE sale_items ADD COLUMN qty INTEGER;'); } catch (e) {}
     try { await db.exec('ALTER TABLE sale_items ADD COLUMN gross_wt REAL;'); } catch (e) {}
@@ -487,7 +488,7 @@ ipcMain.handle('scan-barcode', async (event, barcode) => {
 
 // Invoicing (Transaction)
 ipcMain.handle('create-invoice', async (event, invoiceData) => {
-  const { customer_name, customer_mobile, total_metal_value, total_making_charges, gst_amount, grand_total, payment_mode, payment_breakdown, discount, cgst, sgst, taxable_amount, date, items, exchanges } = invoiceData
+  const { customer_name, customer_mobile, customer_address, total_metal_value, total_making_charges, gst_amount, grand_total, payment_mode, payment_breakdown, discount, cgst, sgst, taxable_amount, date, items, exchanges } = invoiceData
   
   let newInvoiceId = null
   const invoice_number = 'INV-' + Date.now().toString().slice(-6)
@@ -496,9 +497,9 @@ ipcMain.handle('create-invoice', async (event, invoiceData) => {
     await db.exec('BEGIN TRANSACTION')
     
     const invoiceResult = await db.run(`
-      INSERT INTO sales (invoice_number, customer_name, customer_phone, payment_mode, subtotal, gst_amount, grand_total, payment_breakdown, discount, cgst, sgst, taxable_amount, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, invoice_number, customer_name, customer_mobile, payment_mode, total_metal_value + total_making_charges, gst_amount, grand_total, JSON.stringify(payment_breakdown || []), discount || 0, cgst || 0, sgst || 0, taxable_amount || 0, date)
+      INSERT INTO sales (invoice_number, customer_name, customer_phone, customer_address, payment_mode, subtotal, gst_amount, grand_total, payment_breakdown, discount, cgst, sgst, taxable_amount, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, invoice_number, customer_name, customer_mobile, customer_address, payment_mode, total_metal_value + total_making_charges, gst_amount, grand_total, JSON.stringify(payment_breakdown || []), discount || 0, cgst || 0, sgst || 0, taxable_amount || 0, date)
     
     newInvoiceId = invoiceResult.lastID
 
