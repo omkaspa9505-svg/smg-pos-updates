@@ -7,36 +7,28 @@ interface Props {
   onClose: () => void
 }
 
-// Generate ZPL for a 2" x 1" label at 203 DPI
+// Generate ZPL - no hardcoded PW/LL, printer uses its own calibrated label size
 function generateZpl(item: any): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 30)
 
-  const name = sanitize('SMG Jewellers')
   const catPurity = sanitize(`${item.category || ''} ${item.purity || ''}`)
-  const weights = sanitize(`GW:${item.gross_wt || 0}g NW:${item.net_wt || 0}g`)
-  const huid = item.huid ? sanitize(`HUID:${item.huid}`) : ''
-  const barcode = sanitize(item.barcode || '000000')
+  const weights   = sanitize(`GW:${item.gross_wt || 0}g  NW:${item.net_wt || 0}g`)
+  const huid      = item.huid ? sanitize(`HUID: ${item.huid}`) : ''
+  const barcode   = sanitize(item.barcode || '000000')
 
-  return [
+  // No ^PW / ^LL — let the ZDesigner driver use its own label size calibration
+  const lines = [
     '^XA',
-    '^MMT',
-    '^PW406',   // 2 inches at 203 DPI
-    '^LL203',   // 1 inch at 203 DPI
-    '^LS0',
-    // Store name - bold
-    `^FO10,8^A0N,22,22^FD${name}^FS`,
-    // Category & Purity
-    `^FO10,32^A0N,18,18^FD${catPurity}^FS`,
-    // Weights
-    `^FO10,52^A0N,18,18^FD${weights}^FS`,
-    // HUID (if present)
-    huid ? `^FO10,72^A0N,16,16^FD${huid}^FS` : '',
-    // Separator line
-    '^FO10,92^GB386,1,1^FS',
-    // Barcode - Code128, height 60, with human readable below
-    `^FO10,96^BCN,60,Y,N,N^FD${barcode}^FS`,
+    '^CF0,20',                                      // default font size 20
+    '^FO10,10^CF0,22^FDSMG Jewellers^FS',          // shop name
+    `^FO10,36^CF0,18^FD${catPurity}^FS`,           // category + purity
+    `^FO10,58^CF0,16^FD${weights}^FS`,             // weights
+    huid ? `^FO10,78^CF0,14^FD${huid}^FS` : '',   // HUID if present
+    `^FO10,${huid ? 96 : 80}^BCN,55,Y,N,N^FD${barcode}^FS`, // barcode
     '^XZ'
-  ].filter(Boolean).join('\n')
+  ]
+
+  return lines.filter(Boolean).join('\r\n')
 }
 
 export default function BarcodeTag({ item, onClose }: Props) {
@@ -93,9 +85,10 @@ export default function BarcodeTag({ item, onClose }: Props) {
       const zpl = generateZpl(item)
       await (window as any).api.printZpl({ zpl, printerName: selectedPrinter })
       setStatus('done')
-      setTimeout(() => onClose(), 1200)
+      setTimeout(() => onClose(), 2000)
     } catch (err: any) {
       console.error('ZPL print failed:', err)
+      // Show the raw error message so we can diagnose
       setErrorMsg(err?.message || 'Print failed')
       setStatus('error')
     }
