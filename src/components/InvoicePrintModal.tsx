@@ -72,6 +72,7 @@ export default function InvoicePrintModal({
             <th className="border-r border-black px-0.5 text-center" style={{ padding: '2px 2px', fontWeight: 700 }}>HSN</th>
             <th className="border-r border-black px-0.5 text-center w-5" style={{ padding: '2px 2px', fontWeight: 700 }}>Qty</th>
             <th className="border-r border-black px-0.5 text-right" style={{ padding: '2px 2px', fontWeight: 700 }}>Gr.Wt<br/><span style={{ fontSize: `${5 * scale}px`, fontWeight: 400 }}>g</span></th>
+            <th className="border-r border-black px-0.5 text-right" style={{ padding: '2px 2px', fontWeight: 700 }}>St.Wt<br/><span style={{ fontSize: `${5 * scale}px`, fontWeight: 400 }}>g</span></th>
             <th className="border-r border-black px-0.5 text-right" style={{ padding: '2px 2px', fontWeight: 700 }}>Net.Wt<br/><span style={{ fontSize: `${5 * scale}px`, fontWeight: 400 }}>g</span></th>
             <th className="border-r border-black px-0.5 text-right" style={{ padding: '2px 2px', fontWeight: 700 }}>Rate<br/><span style={{ fontSize: `${5 * scale}px`, fontWeight: 400 }}>/g</span></th>
             <th className="border-r border-black px-0.5 text-right" style={{ padding: '2px 2px', fontWeight: 700 }}>VA</th>
@@ -91,6 +92,7 @@ export default function InvoicePrintModal({
               <td className="border-r border-black text-center" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.hsn_code}</td>
               <td className="border-r border-black text-center" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.qty || 1}</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.gross_wt}</td>
+              <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.stone_wt || 0}</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.net_wt}</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.rate_per_gram || (i.net_wt ? (i.metal_value / i.net_wt).toFixed(0) : '0')}</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>{i.va_amount}</td>
@@ -110,6 +112,7 @@ export default function InvoicePrintModal({
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>-</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>-</td>
               <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>-</td>
+              <td className="border-r border-black text-right" style={{ padding: '0 2px', fontSize: `${7 * scale}px` }}>-</td>
               <td className="text-right" style={{ padding: '0 4px', fontSize: `${10 * scale}px`, fontWeight: 800, color: '#c00' }}>- {i.value?.toFixed(2) || i.net_value?.toFixed(2)}</td>
             </tr>
           ))}
@@ -120,6 +123,7 @@ export default function InvoicePrintModal({
             return Array.from({ length: emptyRows }).map((_, i) => (
               <tr key={`empty-${i}`} className="border-b border-black" style={{ height: `${18 * scale}px` }}>
                 <td className="border-r border-black px-0.5">&nbsp;</td>
+                <td className="border-r border-black px-0.5"></td>
                 <td className="border-r border-black px-0.5"></td>
                 <td className="border-r border-black px-0.5"></td>
                 <td className="border-r border-black px-0.5"></td>
