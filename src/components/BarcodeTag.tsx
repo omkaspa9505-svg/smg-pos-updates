@@ -26,8 +26,10 @@ function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: n
     `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
     // --- LEFT HALF: Barcode & HUID ---
     huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
-    // Barcode - height 20 dots, width 1
-    `^FO${leftX},${offsetY + 22}^BY1^BCN,20,Y,N,N^FD${barcode}^FS`,
+    // Barcode - height 30 dots, width 1, text OFF
+    `^FO${leftX},${offsetY + 22}^BY1^BCN,30,N,N,N^FD${barcode}^FS`,
+    // Custom larger text for the barcode number underneath
+    `^FO${leftX},${offsetY + 54}^A0N,22,22^FD${barcode}^FS`,
     '^XZ'
   ]
 
@@ -216,7 +218,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     </div>
                   )}
                   <div style={{ position: 'absolute', left: 0, top: 22 }}>
-                    <Barcode value={item.barcode || '000000'} width={2} height={35} fontSize={18} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
+                    <Barcode value={item.barcode || '000000'} width={1.5} height={30} fontSize={22} margin={0} displayValue={true} background="transparent" lineColor="#000000" />
                   </div>
                 </div>
 
