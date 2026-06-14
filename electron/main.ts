@@ -18,10 +18,15 @@ app.on('before-quit', async (e) => {
 
 let db: any
 
-function performFortKnoxBackup() {
+async function performFortKnoxBackup() {
   try {
     const dbPath = join(app.getPath('userData'), 'database.sqlite')
     if (!fs.existsSync(dbPath)) return;
+
+    if (db) {
+      // Force SQLite to write any pending WAL transactions to the main database file before copying
+      await db.exec('PRAGMA wal_checkpoint(FULL);')
+    }
 
     // We backup to two locations: C:\ drive and the user's Documents folder
     const backupDirs = [
@@ -296,8 +301,8 @@ app.whenReady().then(async () => {
   })
 })
 
-app.on('window-all-closed', () => {
-  performFortKnoxBackup() // Always backup on close
+app.on('window-all-closed', async () => {
+  await performFortKnoxBackup() // Wait for backup to finish
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -523,8 +528,8 @@ ipcMain.handle('add-inventory', async (event, item) => {
   try {
     let barcode = item.barcode
     if (!barcode) {
-      const row = await db.get('SELECT COUNT(*) as count FROM inventory')
-      barcode = `SMG-${1000 + row.count + 1}`
+      const row = await db.get('SELECT MAX(id) as maxId FROM inventory')
+      barcode = `SMG-${1000 + (row?.maxId || 0) + 1}`
     }
 
     const result = await db.run(`
