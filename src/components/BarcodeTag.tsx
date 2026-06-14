@@ -57,18 +57,17 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
   const lines = [
     '~SD25',
     '^XA',
-    '^PW507', // Hardcode 2.5 inch print width
-    '^LL101', // Hardcode 0.5 inch label length
     '^PR2,2,2',
-    `^FO${offsetX},${offsetY}^A0N,22,22^FDSMG^FS`,
-    `^FO${offsetX + 80},${offsetY}^A0N,22,22^FD${category}^FS`,
+    `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG^FS`,
+    `^FO${offsetX + 70},${offsetY}^A0N,18,18^FD${category}^FS`,
     // BS: horizontal on left below SMG, above QR code
-    `^FO${offsetX},${offsetY + 26}^A0N,20,20^FD${vendorInitials}^FS`,
-    `^FO${offsetX + 80},${offsetY + 26}^A0N,22,22^FD${purity}^FS`,
+    `^FO${offsetX},${offsetY + 22}^A0N,18,18^FD${vendorInitials}^FS`,
+    `^FO${offsetX + 70},${offsetY + 22}^A0N,18,18^FD${purity}^FS`,
     // W: and weight combined on same line e.g. W:10g
-    `^FO${offsetX + 80},${offsetY + 52}^A0N,22,22^FD${grossWt}^FS`,
-    `^FO${offsetX + 80},${offsetY + 78}^A0N,22,22^FD${identifier}^FS`,
-    `^FO${offsetX},${offsetY + 52}^BQN,2,4^FDQA,${identifier}^FS`,
+    `^FO${offsetX + 70},${offsetY + 44}^A0N,18,18^FD${grossWt}^FS`,
+    `^FO${offsetX + 70},${offsetY + 66}^A0N,18,18^FD${identifier}^FS`,
+    // Reduced QR code magnification from 4 to 3
+    `^FO${offsetX},${offsetY + 44}^BQN,2,3^FDQA,${identifier}^FS`,
     '^XZ'
   ]
 
@@ -303,7 +302,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     <span>{offsetX} dots</span>
                   </div>
                   <input
-                    type="range" min="0" max="600" step="5"
+                    type="range" min="0" max="1000" step="5"
                     value={offsetX}
                     onChange={handleOffsetXChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
@@ -318,7 +317,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     <span>{rightOffsetX} dots</span>
                   </div>
                   <input
-                    type="range" min="0" max="800" step="5"
+                    type="range" min="0" max="1000" step="5"
                     value={rightOffsetX}
                     onChange={handleRightOffsetXChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600"
@@ -349,7 +348,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
                     <span>{squareOffsetX} dots</span>
                   </div>
                   <input
-                    type="range" min="0" max="300" step="5"
+                    type="range" min="0" max="1000" step="5"
                     value={squareOffsetX}
                     onChange={handleSquareOffsetXChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
