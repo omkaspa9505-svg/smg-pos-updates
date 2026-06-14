@@ -59,15 +59,15 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
     '^XA',
     '^PR2,2,2',
     `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG^FS`,
-    `^FO${offsetX + 70},${offsetY}^A0N,18,18^FD${category}^FS`,
-    // BS: horizontal on left below SMG, above QR code
-    `^FO${offsetX},${offsetY + 22}^A0N,18,18^FD${vendorInitials}^FS`,
-    `^FO${offsetX + 70},${offsetY + 22}^A0N,18,18^FD${purity}^FS`,
-    // W: and weight combined on same line e.g. W:10g
-    `^FO${offsetX + 70},${offsetY + 44}^A0N,18,18^FD${grossWt}^FS`,
-    `^FO${offsetX + 70},${offsetY + 66}^A0N,18,18^FD${identifier}^FS`,
-    // Reduced QR code magnification from 4 to 3
-    `^FO${offsetX},${offsetY + 44}^BQN,2,3^FDQA,${identifier}^FS`,
+    `^FO${offsetX + 50},${offsetY}^A0N,18,18^FD${category}^FS`,
+    // purity, weight, ID tightly packed on the right
+    `^FO${offsetX + 50},${offsetY + 22}^A0N,18,18^FD${purity}^FS`,
+    `^FO${offsetX + 50},${offsetY + 44}^A0N,18,18^FD${grossWt}^FS`,
+    `^FO${offsetX + 50},${offsetY + 66}^A0N,18,18^FD${identifier}^FS`,
+    // QR code moved up to be flush below SMG
+    `^FO${offsetX},${offsetY + 26}^BQN,2,3^FDQA,${identifier}^FS`,
+    // Vendor initials (JJ) tucked away tiny in the corner
+    `^FO${offsetX + 160},${offsetY + 66}^A0N,10,10^FD${vendorInitials}^FS`,
     '^XZ'
   ]
 

@@ -3,7 +3,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 contextBridge.exposeInMainWorld('api', {
   // Rates
   getRates: (date: string) => ipcRenderer.invoke('get-rates', date),
+  getLatestRates: () => ipcRenderer.invoke('get-latest-rates'),
   saveRates: (data: any) => ipcRenderer.invoke('save-rates', data),
+  
+  // Database Backups
+  exportBackup: () => ipcRenderer.invoke('export-backup'),
   
   // Inventory
   getInventory: () => ipcRenderer.invoke('get-inventory'),

@@ -369,10 +369,16 @@ export default function Inventory() {
                     onChange={e => set('purity', e.target.value)}
                     className="w-full p-2.5 border border-gray-300 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   >
-                    <option>22k</option>
-                    <option>24k</option>
-                    <option>18k</option>
-                    <option>Silver</option>
+                    <option value="24k">24k</option>
+                    <option value="22k">22k</option>
+                    <option value="20k">20k</option>
+                    <option value="18k">18k</option>
+                    <option value="14k">14k</option>
+                    <option value="13k">13k</option>
+                    <option value="RS">RS</option>
+                    <option value="92.5">92.5</option>
+                    <option value="99.9">99.9</option>
+                    <option value="999">999</option>
                   </select>
                 </div>
               </div>

@@ -16,10 +16,28 @@ app.on('before-quit', async (e) => {
   app.exit()
 })
 
-let db: any;
+let db: any
+
+function autoBackup(sourcePath: string) {
+  const backupDir = 'C:\\SMG_Backups'
+  if (!fs.existsSync(backupDir)) {
+    fs.mkdirSync(backupDir, { recursive: true })
+  }
+  const dateStr = new Date().toISOString().split('T')[0]
+  const backupPath = path.join(backupDir, `backup_${dateStr}.sqlite`)
+  
+  if (!fs.existsSync(backupPath)) {
+    try {
+      fs.copyFileSync(sourcePath, backupPath)
+      console.log('Daily backup created at', backupPath)
+    } catch (err) {
+      console.error('Backup failed:', err)
+    }
+  }
+}
 
 async function setupDatabase() {
-  const dbPath = join(app.getPath('userData'), 'smg_pos.db')
+  const dbPath = path.join(app.getPath('userData'), 'database.sqlite')
 
   if (!fs.existsSync(dbPath)) {
     // If the database doesn't exist (e.g. fresh install)
@@ -42,6 +60,11 @@ async function setupDatabase() {
     driver: sqlite3.Database
   })
 
+  await db.exec('PRAGMA journal_mode = WAL;')
+  await db.exec('PRAGMA synchronous = NORMAL;')
+
+  autoBackup(dbPath)
+
   // --- DATABASE SCHEMA ---
   await db.exec(`
     CREATE TABLE IF NOT EXISTS daily_rates (
@@ -51,6 +74,18 @@ async function setupDatabase() {
       gold_24k NUMERIC,
       silver NUMERIC
     );
+  `);
+  
+  // Add new columns if they don't exist
+  const columnsToAdd = [
+    'gold_13k', 'gold_14k', 'gold_18k', 'gold_20k',
+    'silver_rs', 'silver_92_5', 'silver_99_9', 'silver_999'
+  ];
+  for (const col of columnsToAdd) {
+    try { await db.exec(`ALTER TABLE daily_rates ADD COLUMN ${col} NUMERIC`); } catch(e) {}
+  }
+
+  await db.exec(`
 
     CREATE TABLE IF NOT EXISTS inventory (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -286,20 +321,56 @@ ipcMain.handle('download-update', () => {
 
 // --- IPC HANDLERS ---
 
+ipcMain.handle('export-backup', async () => {
+  const { canceled, filePath } = await dialog.showSaveDialog({
+    title: 'Export Database Backup',
+    defaultPath: `SMG_Backup_${new Date().toISOString().split('T')[0]}.sqlite`,
+    filters: [{ name: 'SQLite Database', extensions: ['sqlite', 'db'] }]
+  })
+  
+  if (!canceled && filePath) {
+    try {
+      const dbPath = path.join(app.getPath('userData'), 'database.sqlite')
+      fs.copyFileSync(dbPath, filePath)
+      return { success: true, path: filePath }
+    } catch (e: any) {
+      return { success: false, error: e.message }
+    }
+  }
+  return { success: false, canceled: true }
+})
+
 // Rates
 ipcMain.handle('get-rates', async (event, date) => {
   return await db.get('SELECT * FROM daily_rates WHERE date = ?', date)
 })
 
-ipcMain.handle('save-rates', async (event, { date, gold_22k, gold_24k, silver }) => {
+ipcMain.handle('get-latest-rates', async () => {
+  return await db.get('SELECT * FROM daily_rates ORDER BY date DESC LIMIT 1')
+})
+
+ipcMain.handle('save-rates', async (event, rates) => {
   const result = await db.run(`
-    INSERT INTO daily_rates (date, gold_22k, gold_24k, silver) 
-    VALUES (?, ?, ?, ?)
+    INSERT INTO daily_rates (
+      date, gold_13k, gold_14k, gold_18k, gold_20k, gold_22k, gold_24k, 
+      silver_rs, silver_92_5, silver_99_9, silver_999
+    ) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(date) DO UPDATE SET 
+      gold_13k=excluded.gold_13k,
+      gold_14k=excluded.gold_14k,
+      gold_18k=excluded.gold_18k,
+      gold_20k=excluded.gold_20k,
       gold_22k=excluded.gold_22k, 
       gold_24k=excluded.gold_24k, 
-      silver=excluded.silver
-  `, date, gold_22k, gold_24k, silver)
+      silver_rs=excluded.silver_rs,
+      silver_92_5=excluded.silver_92_5,
+      silver_99_9=excluded.silver_99_9,
+      silver_999=excluded.silver_999
+  `, 
+    rates.date, rates.gold_13k, rates.gold_14k, rates.gold_18k, rates.gold_20k, rates.gold_22k, rates.gold_24k,
+    rates.silver_rs, rates.silver_92_5, rates.silver_99_9, rates.silver_999
+  )
   return result.changes > 0
 })
 
