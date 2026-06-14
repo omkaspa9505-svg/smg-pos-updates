@@ -318,26 +318,28 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 <div>
                   <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
                     <span>LEFT MARGIN (X OFFSET)</span>
-                    <span>{squareOffsetX} dots</span>
+                    <span>{offsetX} dots</span>
                   </div>
                   <input
                     type="range" min="0" max="1000" step="5"
-                    value={squareOffsetX}
-                    onChange={handleSquareOffsetXChange}
+                    value={offsetX}
+                    onChange={handleOffsetXChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">Move the text side left or right.</p>
                 </div>
                 {/* Square Y */}
                 <div>
                   <div className="flex justify-between mb-1">
                     <label className="text-xs font-semibold text-gray-600 uppercase">Top Margin (Y Offset)</label>
-                    <span className="text-xs text-gray-500">{squareOffsetY} dots</span>
+                    <span className="text-xs text-gray-500">{offsetY} dots</span>
                   </div>
                   <input
                     type="range" min="0" max="200" step="2"
-                    value={squareOffsetY} onChange={handleSquareOffsetYChange}
+                    value={offsetY} onChange={handleOffsetYChange}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">Move the text up or down on the label.</p>
                 </div>
               </>
             )}
