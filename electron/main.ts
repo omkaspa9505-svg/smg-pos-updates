@@ -439,6 +439,59 @@ async function syncToGoogleSheets(range: string, values: any[][], skipColA = fal
   }
 }
 
+async function updateGoogleSheetRow(sheetName: string, searchCol: string, searchVal: string, updateColStart: string, updateColEnd: string, values: any[][]) {
+  try {
+    const credentialsPath = app.isPackaged 
+      ? join(process.resourcesPath, 'credentials.json') 
+      : join(__dirname, '../../credentials.json')
+
+    if (!fs.existsSync(credentialsPath)) return false;
+    
+    const auth = new google.auth.GoogleAuth({
+      keyFile: credentialsPath,
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+    
+    const sheets = google.sheets({ version: 'v4', auth });
+    
+    // Fetch the search column to find the row
+    const getRes = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${sheetName}!${searchCol}:${searchCol}`,
+      valueRenderOption: 'UNFORMATTED_VALUE'
+    });
+    
+    const rows = getRes.data.values || [];
+    let targetRowIndex = -1;
+    
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i] && String(rows[i][0]).trim() === String(searchVal).trim()) {
+        targetRowIndex = i + 1; // 1-indexed
+        break;
+      }
+    }
+    
+    if (targetRowIndex === -1) {
+      console.warn(`Row with ${searchVal} not found in ${sheetName}! Cannot update.`);
+      return false;
+    }
+    
+    const range = `${sheetName}!${updateColStart}${targetRowIndex}:${updateColEnd}${targetRowIndex}`;
+    
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: SPREADSHEET_ID,
+      range: range,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: { values },
+    });
+    console.log(`Updated Google Sheets [${range}] for ${searchVal}`);
+    return true;
+  } catch (error) {
+    console.error('Google Sheets API Error on update:', error);
+    return false;
+  }
+}
+
 // Customers & Schemes
 ipcMain.handle('get-customers', async () => {
   return await db.all("SELECT * FROM customers ORDER BY id ASC")
@@ -499,6 +552,15 @@ ipcMain.handle('update-customer', async (event, c) => {
     UPDATE customers SET name = ?, mobile = ?, scheme_type = ?, enrolment_date = ?, base_amount = ?, staff_name = ?
     WHERE id = ?
   `, c.name, c.mobile, c.scheme_type, c.enrolment_date, c.base_amount, c.staff_name, c.id)
+
+  if (result.changes > 0) {
+    const row = await db.get("SELECT scheme_id FROM customers WHERE id = ?", c.id);
+    if (row && row.scheme_id) {
+      updateGoogleSheetRow('SCHEME DATA', 'A', row.scheme_id, 'B', 'G', [[
+        c.name, c.mobile, c.scheme_type, c.enrolment_date, c.base_amount, c.staff_name || ''
+      ]]);
+    }
+  }
   return result.changes > 0
 })
 
@@ -554,6 +616,27 @@ ipcMain.handle('add-inventory', async (event, item) => {
     return { success: result.changes > 0, barcode }
   } catch (err: any) {
     require('fs').writeFileSync('C:\\\\Users\\\\omkas\\\\Desktop\\\\SMG_POS\\\\inv_error.log', String(err));
+    return { success: false, error: String(err) }
+  }
+})
+
+ipcMain.handle('update-inventory', async (event, item) => {
+  try {
+    const result = await db.run(`
+      UPDATE inventory 
+      SET category = ?, purity = ?, gross_wt = ?, net_wt = ?, stone_wt = ?, 
+          making_charge_type = ?, making_charge_rate = ?, vendor_name = ?, stones = ?, huid = ?
+      WHERE barcode = ?
+    `, item.category, item.purity, item.gross_wt, item.net_wt, item.stone_wt, item.making_charge_type, item.making_charge_rate, item.vendor_name, JSON.stringify(item.stones || []), item.huid || '', item.barcode)
+    
+    if (result.changes > 0) {
+      updateGoogleSheetRow('INVENTORY DATA', 'A', item.barcode, 'B', 'K', [[
+        item.category, item.purity, item.gross_wt, item.net_wt, item.stone_wt, item.making_charge_type, item.making_charge_rate, item.vendor_name, JSON.stringify(item.stones || []), item.huid || ''
+      ]]);
+    }
+    return { success: result.changes > 0 }
+  } catch (err: any) {
+    console.error("Update inventory error", err);
     return { success: false, error: String(err) }
   }
 })
