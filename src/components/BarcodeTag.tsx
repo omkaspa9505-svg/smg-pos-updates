@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import Barcode from 'react-barcode'
 import { Printer, X, CheckCircle, AlertCircle, Settings2, Tag, QrCode } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
 
 interface Props {
   item: any
