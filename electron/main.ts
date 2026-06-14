@@ -37,7 +37,7 @@ function autoBackup(sourcePath: string) {
 }
 
 async function setupDatabase() {
-  const dbPath = path.join(app.getPath('userData'), 'database.sqlite')
+  const dbPath = join(app.getPath('userData'), 'database.sqlite')
 
   if (!fs.existsSync(dbPath)) {
     // If the database doesn't exist (e.g. fresh install)
