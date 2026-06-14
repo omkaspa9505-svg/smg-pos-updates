@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { fileURLToPath } from 'url'
 import sqlite3 from 'sqlite3'
@@ -24,7 +24,7 @@ function autoBackup(sourcePath: string) {
     fs.mkdirSync(backupDir, { recursive: true })
   }
   const dateStr = new Date().toISOString().split('T')[0]
-  const backupPath = path.join(backupDir, `backup_${dateStr}.sqlite`)
+  const backupPath = join(backupDir, `backup_${dateStr}.sqlite`)
   
   if (!fs.existsSync(backupPath)) {
     try {
@@ -330,7 +330,7 @@ ipcMain.handle('export-backup', async () => {
   
   if (!canceled && filePath) {
     try {
-      const dbPath = path.join(app.getPath('userData'), 'database.sqlite')
+      const dbPath = join(app.getPath('userData'), 'database.sqlite')
       fs.copyFileSync(dbPath, filePath)
       return { success: true, path: filePath }
     } catch (e: any) {
