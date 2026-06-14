@@ -45,6 +45,7 @@ async function performFortKnoxBackup() {
       }
       const backupPath = join(dir, fileName)
       fs.copyFileSync(dbPath, backupPath)
+      fs.utimesSync(backupPath, now, now) // Force Date Modified to update visually
     }
     console.log('Fort Knox Backup completed:', fileName)
   } catch (err) {
@@ -299,11 +300,18 @@ app.whenReady().then(async () => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit()
 })
 
-app.on('window-all-closed', async () => {
-  await performFortKnoxBackup() // Wait for backup to finish
-  if (process.platform !== 'darwin') app.quit()
+let isQuitting = false;
+app.on('before-quit', async (event) => {
+  if (!isQuitting) {
+    event.preventDefault()
+    isQuitting = true
+    await performFortKnoxBackup() // Wait for backup to finish
+    app.quit()
+  }
 })
 
 ipcMain.handle('install-update', () => {
