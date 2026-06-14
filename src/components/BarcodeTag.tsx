@@ -20,8 +20,6 @@ function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: n
   const lines = [
     '~SD25', // Set Darkness to 25 (out of 30) for crisp printing on plastic tags
     '^XA',
-    '^PW507', // Hardcode 2.5 inch print width (203dpi)
-    '^LL101', // Hardcode 0.5 inch label length (203dpi)
     '^PR2,2,2', // Print Rate: 2 inches per second (slower = better ribbon transfer)
     // --- RIGHT HALF: Shop Name, Details, Weights ---
     `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
@@ -29,8 +27,8 @@ function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: n
     `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
     // --- LEFT HALF: Barcode & HUID ---
     huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
-    // Barcode - height 35 dots (exact v1.0.75)
-    `^FO${leftX},${offsetY + 22}^BCN,35,Y,N,N^FD${barcode}^FS`,
+    // Barcode - height 20 dots, width 1 (half size)
+    `^FO${leftX},${offsetY + 22}^BY1^BCN,20,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
