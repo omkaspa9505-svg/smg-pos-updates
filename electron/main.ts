@@ -18,21 +18,32 @@ app.on('before-quit', async (e) => {
 
 let db: any
 
-function autoBackup(sourcePath: string) {
-  const backupDir = 'C:\\SMG_Backups'
-  if (!fs.existsSync(backupDir)) {
-    fs.mkdirSync(backupDir, { recursive: true })
-  }
-  const dateStr = new Date().toISOString().split('T')[0]
-  const backupPath = join(backupDir, `backup_${dateStr}.sqlite`)
-  
-  if (!fs.existsSync(backupPath)) {
-    try {
-      fs.copyFileSync(sourcePath, backupPath)
-      console.log('Daily backup created at', backupPath)
-    } catch (err) {
-      console.error('Backup failed:', err)
+function performFortKnoxBackup() {
+  try {
+    const dbPath = join(app.getPath('userData'), 'database.sqlite')
+    if (!fs.existsSync(dbPath)) return;
+
+    // We backup to two locations: C:\ drive and the user's Documents folder
+    const backupDirs = [
+      'C:\\SMG_POS_Backups',
+      join(app.getPath('documents'), 'SMG_POS_Backups')
+    ]
+
+    const now = new Date()
+    const dateStr = now.toISOString().split('T')[0]
+    const hourStr = now.getHours().toString().padStart(2, '0')
+    const fileName = `backup_${dateStr}_${hourStr}h.sqlite`
+
+    for (const dir of backupDirs) {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true })
+      }
+      const backupPath = join(dir, fileName)
+      fs.copyFileSync(dbPath, backupPath)
     }
+    console.log('Fort Knox Backup completed:', fileName)
+  } catch (err) {
+    console.error('Fort Knox Backup failed:', err)
   }
 }
 
@@ -63,7 +74,7 @@ async function setupDatabase() {
   await db.exec('PRAGMA journal_mode = WAL;')
   await db.exec('PRAGMA synchronous = NORMAL;')
 
-  autoBackup(dbPath)
+  performFortKnoxBackup()
 
   // --- DATABASE SCHEMA ---
   await db.exec(`
@@ -226,24 +237,6 @@ autoUpdater.logger = log
 ;(autoUpdater.logger as any).transports.file.level = 'debug'
 autoUpdater.autoDownload = false
 process.env.GH_TOKEN = 'ghp_' + 'Tl6PYKfSas6JBf74tomfXefiWN9BX91gWvmt'
-function backupDatabase() {
-  try {
-    const backupDir = 'C:\\SMG_POS_Backups';
-    if (!fs.existsSync(backupDir)) {
-      fs.mkdirSync(backupDir, { recursive: true });
-    }
-    const dbPath = join(app.getPath('userData'), 'smg_pos.db');
-    if (fs.existsSync(dbPath)) {
-      const dateStr = new Date().toISOString().split('T')[0];
-      const backupPath = join(backupDir, `smg_pos_backup_${dateStr}.db`);
-      fs.copyFileSync(dbPath, backupPath);
-      console.log('Database backed up to:', backupPath);
-    }
-  } catch (err) {
-    console.error('Failed to backup database:', err);
-  }
-}
-
 let mainWindow: BrowserWindow | null
 
 function createWindow() {
@@ -293,13 +286,10 @@ app.whenReady().then(async () => {
     }, 5000)
   }
 
-  // Schedule daily backup at 8:30 PM (20:30)
+  // Schedule hourly backup
   setInterval(() => {
-    const now = new Date()
-    if (now.getHours() === 20 && now.getMinutes() === 30) {
-      backupDatabase()
-    }
-  }, 60000) // Check every minute
+    performFortKnoxBackup()
+  }, 60 * 60 * 1000) // Every 1 hour
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
@@ -307,7 +297,7 @@ app.whenReady().then(async () => {
 })
 
 app.on('window-all-closed', () => {
-  backupDatabase() // Always backup on close
+  performFortKnoxBackup() // Always backup on close
   if (process.platform !== 'darwin') app.quit()
 })
 
