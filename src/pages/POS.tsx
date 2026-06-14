@@ -5,7 +5,7 @@ import toast from 'react-hot-toast'
 import InvoicePrintModal from '../components/InvoicePrintModal'
 
 export default function POS() {
-  const [rates, setRates] = useState({ gold_22k: 0, gold_24k: 0, silver: 0 })
+  const [rates, setRates] = useState<any>({ gold_13k: 0, gold_14k: 0, gold_18k: 0, gold_20k: 0, gold_22k: 0, gold_24k: 0, silver_rs: 0, silver_92_5: 0, silver_99_9: 0, silver_999: 0 })
   const [barcodeInput, setBarcodeInput] = useState('')
   const [cart, setCart] = useState<any[]>([])
   const [exchangeItems, setExchangeItems] = useState<any[]>([])
@@ -57,8 +57,8 @@ export default function POS() {
 
   const handleScan = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && barcodeInput.trim() !== '') {
-      if (rates.gold_22k === 0 || rates.gold_24k === 0 || rates.silver === 0) {
-        toast.error("Please set today's board rates in the Dashboard first!")
+      if (!rates.gold_22k && !rates.silver_rs) {
+        toast.error("Please ensure today's board rates are set in the Dashboard!")
         setBarcodeInput('')
         return
       }
@@ -67,9 +67,16 @@ export default function POS() {
         const item = await (window as any).api.scanBarcode(barcodeInput.trim().toUpperCase())
         if (item) {
           let rate = 0
-          if (item.purity === '22k') rate = rates.gold_22k
-          if (item.purity === '24k') rate = rates.gold_24k
-          if (item.purity === 'Silver') rate = rates.silver
+          if (item.purity === '13k') rate = rates.gold_13k || 0
+          else if (item.purity === '14k') rate = rates.gold_14k || 0
+          else if (item.purity === '18k') rate = rates.gold_18k || 0
+          else if (item.purity === '20k') rate = rates.gold_20k || 0
+          else if (item.purity === '22k') rate = rates.gold_22k || 0
+          else if (item.purity === '24k') rate = rates.gold_24k || 0
+          else if (item.purity === 'RS') rate = rates.silver_rs || 0
+          else if (item.purity === '92.5') rate = rates.silver_92_5 || 0
+          else if (item.purity === '99.9') rate = rates.silver_99_9 || 0
+          else if (item.purity === '999') rate = rates.silver_999 || 0
           
           let stAmount = 0
           if (item.stones) {
@@ -125,7 +132,7 @@ export default function POS() {
     if (isNaN(gwt) || gwt <= 0) return toast.error('Please enter a valid gross weight');
     if (isNaN(yieldPct) || yieldPct <= 0 || yieldPct > 100) return toast.error('Please enter a valid purity yield percentage');
 
-    const rate = newExchange.metal === 'Silver' ? rates.silver : rates.gold_24k
+    const rate = newExchange.metal === 'Silver' ? (rates.silver_999 || rates.silver_99_9 || rates.silver_rs || 0) : (rates.gold_24k || rates.gold_22k || 0)
     const value = Number(new Decimal(gwt).mul(new Decimal(yieldPct).div(100)).mul(rate).toFixed(2))
     
     setExchangeItems([...exchangeItems, { ...newExchange, value }])
@@ -224,8 +231,8 @@ export default function POS() {
         <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
           <ShoppingCart className="text-blue-600" /> Point of Sale
         </h1>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border font-bold ${rates.gold_22k === 0 ? 'bg-red-50 text-red-800 border-red-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200'}`}>
-          {rates.gold_22k === 0 ? "⚠️ Rates Not Set for Today!" : `Today's 22k Rate: Rs. ${rates.gold_22k}/g`}
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border font-bold ${(!rates.gold_22k && !rates.silver_rs) ? 'bg-red-50 text-red-800 border-red-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200'}`}>
+          {!rates.gold_22k && !rates.silver_rs ? "⚠️ Rates Not Set for Today!" : `Today's Rates - 22k: Rs. ${rates.gold_22k || 0}/g | RS: Rs. ${rates.silver_rs || 0}/g`}
         </div>
       </div>
 
