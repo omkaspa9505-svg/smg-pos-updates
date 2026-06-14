@@ -36,7 +36,8 @@ function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: n
 }
 
 // ─── SQUARE TAG ZPL (SHORT TAG / HALF TAG) ──────────────────────────────────
-function generateSquareZpl(item: any, offsetX: number, offsetY: number): string {
+// It uses the exact same leftX and offsetY as the normal tag's left flap.
+function generateSquareZpl(item: any, leftX: number, offsetY: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
 
   let vendorInitials = ''
@@ -49,7 +50,7 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
 
   const category   = sanitize(item.category || '')
   const purity     = sanitize(item.purity || '')
-  const weights    = sanitize(`W:${item.gross_wt || 0}g S:${item.stone_wt || 0}g N:${item.net_wt || 0}g`)
+  const weights    = sanitize(`W:${item.gross_wt || 0}g S:${item.stone_wt || 0}g`)
   const identifier = sanitize(item.barcode || item.huid || '')
 
   const lines = [
@@ -57,11 +58,12 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
     '^XA',
     '^PR2,2,2',
     // --- SHORT TAG (0.5" x 1.2" = ~100x240 dots) ---
-    `^FO${offsetX},${offsetY}^A0N,16,16^FDSMG ${category} ${purity}^FS`,
-    `^FO${offsetX},${offsetY + 18}^A0N,14,14^FD${weights}^FS`,
-    `^FO${offsetX},${offsetY + 34}^BY1^BCN,20,Y,N,N^FD${identifier}^FS`,
-    // Vertical vendor initials strictly on the far right edge
-    vendorInitials ? `^FO${offsetX + 220},${offsetY + 4}^A0B,14,14^FD${vendorInitials}^FS` : '',
+    // Everything is packed strictly onto the left flap (leftX)
+    `^FO${leftX},${offsetY}^A0N,16,16^FDSMG ${category} ${purity}^FS`,
+    `^FO${leftX},${offsetY + 18}^A0N,14,14^FD${weights}^FS`,
+    `^FO${leftX},${offsetY + 34}^BY1^BCN,20,Y,N,N^FD${identifier}^FS`,
+    // Vertical vendor initials strictly on the far right edge of the left flap
+    vendorInitials ? `^FO${leftX + 210},${offsetY + 4}^A0B,14,14^FD${vendorInitials}^FS` : '',
     '^XZ'
   ]
 
@@ -79,8 +81,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
   const [errorMsg, setErrorMsg] = useState('')
   const [showSettings, setShowSettings] = useState(false)
 
-  // ── Rat-tail: independent left (barcode) and right (text) X offsets ──────
-  // Uses original v1.0.75 keys so your saved settings are preserved
   const [offsetX, setOffsetX] = useState(Number(localStorage.getItem('zplOffsetX') || 250))
   const [offsetY, setOffsetY] = useState(Number(localStorage.getItem('zplOffsetY') || 10))
   const legacyGap = Number(localStorage.getItem('zplGap') || 150)
@@ -89,9 +89,11 @@ export default function BarcodeTag({ item, onClose }: Props) {
     Number(localStorage.getItem('zplRightOffsetX') || (legacyLeft + legacyGap))
   )
 
-  // ── Square tag offsets ───────────────────────────────────────────────────
-  const [squareOffsetX, setSquareOffsetX] = useState(Number(localStorage.getItem('zplSquareOffsetX') || 20))
-  const [squareOffsetY, setSquareOffsetY] = useState(Number(localStorage.getItem('zplSquareOffsetY') || 10))
+  useEffect(() => {
+    localStorage.setItem('zplOffsetX', String(offsetX))
+    localStorage.setItem('zplOffsetY', String(offsetY))
+    localStorage.setItem('zplRightOffsetX', String(rightOffsetX))
+  }, [offsetX, offsetY, rightOffsetX])
 
   useEffect(() => {
     localStorage.setItem('zplTagFormat', tagFormat)
@@ -124,33 +126,17 @@ export default function BarcodeTag({ item, onClose }: Props) {
     localStorage.setItem('barcodePrinter', val)
   }
 
-  // Rat-tail handlers
   const handleOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setOffsetX(val)
-    localStorage.setItem('zplOffsetX', String(val))
   }
   const handleRightOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setRightOffsetX(val)
-    localStorage.setItem('zplRightOffsetX', String(val))
   }
   const handleOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Number(e.target.value)
     setOffsetY(val)
-    localStorage.setItem('zplOffsetY', String(val))
-  }
-
-  // Square tag handlers
-  const handleSquareOffsetXChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value)
-    setSquareOffsetX(val)
-    localStorage.setItem('zplSquareOffsetX', String(val))
-  }
-  const handleSquareOffsetYChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = Number(e.target.value)
-    setSquareOffsetY(val)
-    localStorage.setItem('zplSquareOffsetY', String(val))
   }
 
   const handlePrint = async () => {
@@ -164,7 +150,7 @@ export default function BarcodeTag({ item, onClose }: Props) {
     try {
       const zpl = tagFormat === 'rat-tail'
         ? generateRatTailZpl(item, offsetX, offsetY, rightOffsetX)
-        : generateSquareZpl(item, squareOffsetX, squareOffsetY)
+        : generateSquareZpl(item, offsetX, offsetY)
 
       await (window as any).api.printZpl({ zpl, printerName: selectedPrinter })
       setStatus('done')
@@ -187,7 +173,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
         className="bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-5 w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex justify-between items-center w-full">
           <h2 className="text-xl font-bold text-gray-800">Print Jewelry Tag</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
@@ -195,7 +180,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
           </button>
         </div>
 
-        {/* Tag Format Toggle */}
         <div className="flex bg-gray-100 p-1 rounded-lg">
           <button
             onClick={() => setTagFormat('rat-tail')}
@@ -211,25 +195,21 @@ export default function BarcodeTag({ item, onClose }: Props) {
           </button>
         </div>
 
-        {/* Visual Preview */}
         <div className="flex flex-col items-center bg-gray-100 py-6 rounded-xl border border-gray-200 overflow-hidden shadow-inner">
           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-6">Live Print Preview (1:1 with Printer Dots)</p>
 
           {tagFormat === 'rat-tail' ? (
-            /* RAT-TAIL PREVIEW */
             <div className="relative w-[400px] h-[52px] flex items-start justify-start">
               <div
                 className="absolute top-0 left-0 flex items-center justify-start drop-shadow-md"
                 style={{ width: '800px', height: '104px', transform: 'scale(0.5)', transformOrigin: 'top left', backgroundColor: 'transparent' }}
               >
-                {/* Physical tag shape */}
                 <div className="bg-white rounded-l-3xl border border-gray-300 shadow-sm" style={{ width: '280px', height: '104px' }} />
                 <div className="bg-white rounded-r-3xl border-y border-r border-gray-300 relative shadow-sm" style={{ width: '280px', height: '104px' }}>
                   <div className="absolute left-0 top-3 bottom-3 w-[1px] border-l-[3px] border-dashed border-gray-200" />
                 </div>
                 <div className="bg-white border-y border-r border-gray-300 rounded-r-full shadow-sm" style={{ width: '240px', height: '24px' }} />
 
-                {/* Left Half: Barcode */}
                 <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
                   {item.huid && (
                     <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
@@ -241,7 +221,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
                   </div>
                 </div>
 
-                {/* Right Half: Shop details */}
                 <div style={{ position: 'absolute', left: rightOffsetX, top: offsetY }}>
                   <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
                     SMG Jewellers
@@ -256,21 +235,20 @@ export default function BarcodeTag({ item, onClose }: Props) {
               </div>
             </div>
           ) : (
-            /* SHORT TAG PREVIEW (HALF TAG) */
             <div className="relative" style={{ width: '140px', height: '140px' }}>
               <div className="bg-white border border-gray-300 shadow-sm" style={{ width: '240px', height: '100px', transform: 'scale(0.5)', transformOrigin: 'top left' }}>
-                <div style={{ position: 'absolute', left: squareOffsetX, top: squareOffsetY }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>
-                    SMG {item.category} {item.purity}
+                <div style={{ position: 'absolute', left: offsetX, top: offsetY }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '12px', fontWeight: 'bold', lineHeight: '12px', color: 'black' }}>
+                    {item.category} {item.purity}
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 18, fontSize: '14px', fontWeight: 'bold', color: 'black', lineHeight: '16px' }}>
-                    W:{item.gross_wt || 0}g S:{item.stone_wt || 0}g N:{item.net_wt || 0}g
+                  <div style={{ position: 'absolute', left: 0, top: 12, fontSize: '10px', fontWeight: 'bold', color: 'black', lineHeight: '10px' }}>
+                    W:{item.gross_wt || 0}g S:{item.stone_wt || 0}g
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 34 }}>
-                    <Barcode value={item.barcode || item.huid || '0000'} height={20} width={1} displayValue={true} fontSize={12} margin={0} />
+                  <div style={{ position: 'absolute', left: 0, top: 22 }}>
+                    <Barcode value={item.barcode || item.huid || '0000'} height={15} width={1} displayValue={true} fontSize={10} margin={0} />
                   </div>
                   {item.vendor_name && (
-                    <div style={{ position: 'absolute', left: 220, top: 0, fontSize: 14, fontWeight: 'bold', fontFamily: 'sans-serif', color: 'black', transform: 'rotate(-90deg)', transformOrigin: 'top left' }}>
+                    <div style={{ position: 'absolute', left: 150, top: 0, fontSize: 10, fontWeight: 'bold', fontFamily: 'sans-serif', color: 'black', transform: 'rotate(-90deg)', transformOrigin: 'top left' }}>
                       {item.vendor_name.substring(0, 2).toUpperCase()}
                     </div>
                   )}
@@ -280,7 +258,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
           )}
         </div>
 
-        {/* Settings Toggle */}
         <button
           onClick={() => setShowSettings(!showSettings)}
           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -289,13 +266,11 @@ export default function BarcodeTag({ item, onClose }: Props) {
           {showSettings ? 'Hide Printer Adjustments' : 'Adjust Print Position'}
         </button>
 
-        {/* Settings Panel */}
         {showSettings && (
           <div className="flex flex-col gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
 
             {tagFormat === 'rat-tail' ? (
               <>
-                {/* Left Half (Barcode) */}
                 <div>
                   <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
                     <span>LEFT HALF — BARCODE (X OFFSET)</span>
@@ -310,7 +285,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
                   <p className="text-[10px] text-gray-400 mt-1">Move the barcode side left or right independently.</p>
                 </div>
 
-                {/* Right Half (Text) */}
                 <div>
                   <div className="flex justify-between items-center text-xs text-gray-700 font-semibold mb-2">
                     <span>RIGHT HALF — TEXT (X OFFSET)</span>
@@ -325,7 +299,6 @@ export default function BarcodeTag({ item, onClose }: Props) {
                   <p className="text-[10px] text-gray-400 mt-1">Move SMG Jewellers text side independently.</p>
                 </div>
 
-                {/* Y Offset */}
                 <div>
                   <div className="flex justify-between mb-1">
                     <label className="text-xs font-semibold text-gray-600 uppercase">Top Margin (Y Offset)</label>
