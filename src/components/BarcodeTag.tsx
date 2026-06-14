@@ -8,49 +8,34 @@ interface Props {
   onClose: () => void
 }
 
-// ─── RAT-TAIL TAG ZPL ──────────────────────────────────────────────
+// ─── RAT-TAIL TAG ZPL (NORMAL TAG) ──────────────────────────────────────────────
 function generateRatTailZpl(item: any, leftX: number, offsetY: number, rightX: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
 
-  let vendor = ''
-  if (item.vendor_name) {
-    const parts = item.vendor_name.trim().split(' ')
-    vendor = parts.length > 1
-      ? (parts[0][0] + parts[1][0]).toUpperCase()
-      : item.vendor_name.substring(0, 2).toUpperCase()
-  }
-
   const catPurity = sanitize(`${item.category || ''} ${item.purity || ''}`)
-  const w1        = sanitize(`W:${item.gross_wt || 0}g S:${item.stone_wt || 0}g`)
-  const w2        = sanitize(`N:${item.net_wt || 0}g`)
+  const weights   = sanitize(`GW:${item.gross_wt || 0}g SW:${item.stone_wt || 0}g NW:${item.net_wt || 0}g`)
   const huid      = item.huid ? sanitize(`HUID: ${item.huid}`) : ''
   const barcode   = sanitize(item.barcode || '000000')
 
-  // Shift rightX a little left (-20 dots) to fit the 1.2 width better
-  const rX = rightX - 20;
-
   const lines = [
-    '~SD25',
+    '~SD25', // Set Darkness to 25
     '^XA',
-    '^PR2,2,2',
-    // --- RIGHT HALF (1.2" = ~243 dots wide) ---
-    `^FO${rX},${offsetY}^A0N,16,16^FDSMG^FS`,
-    `^FO${rX},${offsetY + 16}^A0N,14,14^FD${catPurity}^FS`,
-    `^FO${rX},${offsetY + 32}^A0N,14,14^FD${w1}^FS`,
-    `^FO${rX},${offsetY + 48}^A0N,16,16^FD${w2}^FS`,
-    // Vertical Vendor Initials tucked tiny on the far right edge
-    vendor ? `^FO${rX + 170},${offsetY}^A0B,12,12^FD${vendor}^FS` : '',
-    
-    // --- LEFT HALF: Barcode & HUID (shifted left slightly too) ---
-    huid ? `^FO${leftX - 10},${offsetY}^A0N,14,14^FD${huid}^FS` : '',
-    `^FO${leftX - 10},${offsetY + 16}^BY1^BCN,24,Y,N,N^FD${barcode}^FS`,
+    '^PR2,2,2', // Print Rate
+    // --- RIGHT HALF: Shop Name, Details, Weights ---
+    `^FO${rightX},${offsetY}^A0N,18,18^FDSMG Jewellers^FS`,
+    `^FO${rightX},${offsetY + 22}^A0N,16,16^FD${catPurity}^FS`,
+    `^FO${rightX},${offsetY + 44}^A0N,16,16^FD${weights}^FS`,
+    // --- LEFT HALF: Barcode & HUID ---
+    huid ? `^FO${leftX},${offsetY}^A0N,18,18^FD${huid}^FS` : '',
+    // Barcode - height 20 dots, width 1
+    `^FO${leftX},${offsetY + 22}^BY1^BCN,20,Y,N,N^FD${barcode}^FS`,
     '^XZ'
   ]
 
   return lines.filter(Boolean).join('\r\n')
 }
 
-// ─── SQUARE TAG ZPL (from v1.0.76) ─────────────────────────────────────────
+// ─── SQUARE TAG ZPL (SHORT TAG / HALF TAG) ──────────────────────────────────
 function generateSquareZpl(item: any, offsetX: number, offsetY: number): string {
   const sanitize = (s: any) => String(s ?? '').replace(/[^a-zA-Z0-9 ./:_\-]/g, '').substring(0, 40)
 
@@ -60,29 +45,23 @@ function generateSquareZpl(item: any, offsetX: number, offsetY: number): string 
     vendorInitials = parts.length > 1
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : item.vendor_name.substring(0, 2).toUpperCase()
-  } else {
-    vendorInitials = 'BS'
   }
 
   const category   = sanitize(item.category || '')
   const purity     = sanitize(item.purity || '')
-  const grossWt    = sanitize(`W:${item.gross_wt || 0}g`)  // compact: W:10g on one line
+  const weights    = sanitize(`W:${item.gross_wt || 0}g S:${item.stone_wt || 0}g N:${item.net_wt || 0}g`)
   const identifier = sanitize(item.barcode || item.huid || '')
 
   const lines = [
     '~SD25',
     '^XA',
     '^PR2,2,2',
-    `^FO${offsetX},${offsetY}^A0N,18,18^FDSMG^FS`,
-    `^FO${offsetX + 50},${offsetY}^A0N,18,18^FD${category}^FS`,
-    // purity, weight, ID tightly packed on the right
-    `^FO${offsetX + 50},${offsetY + 22}^A0N,18,18^FD${purity}^FS`,
-    `^FO${offsetX + 50},${offsetY + 44}^A0N,18,18^FD${grossWt}^FS`,
-    `^FO${offsetX + 50},${offsetY + 66}^A0N,18,18^FD${identifier}^FS`,
-    // QR code moved up to be flush below SMG
-    `^FO${offsetX},${offsetY + 26}^BQN,2,3^FDQA,${identifier}^FS`,
-    // Vendor initials (JJ) tucked away tiny in the corner
-    `^FO${offsetX + 160},${offsetY + 66}^A0N,10,10^FD${vendorInitials}^FS`,
+    // --- SHORT TAG (0.5" x 1.2" = ~100x240 dots) ---
+    `^FO${offsetX},${offsetY}^A0N,16,16^FDSMG ${category} ${purity}^FS`,
+    `^FO${offsetX},${offsetY + 18}^A0N,14,14^FD${weights}^FS`,
+    `^FO${offsetX},${offsetY + 34}^BY1^BCN,20,Y,N,N^FD${identifier}^FS`,
+    // Vertical vendor initials strictly on the far right edge
+    vendorInitials ? `^FO${offsetX + 220},${offsetY + 4}^A0B,14,14^FD${vendorInitials}^FS` : '',
     '^XZ'
   ]
 
@@ -263,40 +242,38 @@ export default function BarcodeTag({ item, onClose }: Props) {
                 </div>
 
                 {/* Right Half: Shop details */}
-                <div style={{ position: 'absolute', left: rightOffsetX - 20, top: offsetY }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 16, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
-                    SMG
+                <div style={{ position: 'absolute', left: rightOffsetX, top: offsetY }}>
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: 18, fontWeight: 800, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                    SMG Jewellers
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 16, fontSize: 14, fontWeight: 700, fontFamily: 'sans-serif', whiteSpace: 'nowrap', textTransform: 'uppercase', color: 'black' }}>
+                  <div style={{ position: 'absolute', left: 0, top: 22, fontSize: 16, fontWeight: 700, fontFamily: 'sans-serif', whiteSpace: 'nowrap', textTransform: 'uppercase', color: 'black' }}>
                     {item.category} {item.purity}
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 32, fontSize: 14, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
-                    W:{item.gross_wt || 0}g S:{item.stone_wt || 0}g
+                  <div style={{ position: 'absolute', left: 0, top: 44, fontSize: 16, fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
+                    GW:{item.gross_wt || 0}g SW:{item.stone_wt || 0}g NW:{item.net_wt || 0}g
                   </div>
-                  <div style={{ position: 'absolute', left: 0, top: 48, fontSize: 16, fontWeight: 'bold', fontFamily: 'sans-serif', whiteSpace: 'nowrap', color: 'black' }}>
-                    N:{item.net_wt || 0}g
-                  </div>
-                  {item.vendor_name && (
-                    <div style={{ position: 'absolute', left: 170, top: 0, fontSize: 12, fontWeight: 'bold', fontFamily: 'sans-serif', color: 'black', transform: 'rotate(-90deg)', transformOrigin: 'top left' }}>
-                      {item.vendor_name.substring(0, 2).toUpperCase()}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           ) : (
-            /* SQUARE TAG PREVIEW */
+            /* SHORT TAG PREVIEW (HALF TAG) */
             <div className="relative" style={{ width: '140px', height: '140px' }}>
-              <div className="bg-white border border-gray-300 shadow-sm" style={{ width: '280px', height: '104px', transform: 'scale(0.5)', transformOrigin: 'top left' }}>
+              <div className="bg-white border border-gray-300 shadow-sm" style={{ width: '240px', height: '100px', transform: 'scale(0.5)', transformOrigin: 'top left' }}>
                 <div style={{ position: 'absolute', left: squareOffsetX, top: squareOffsetY }}>
-                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>SMG</div>
-                  <div style={{ position: 'absolute', left: 80, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.category}</div>
-                  {/* BS: horizontal below SMG */}
-                  <div style={{ position: 'absolute', left: 0, top: 26, fontSize: '14px', fontWeight: 'bold', color: 'black', lineHeight: '16px' }}>BS</div>
-                  <div style={{ position: 'absolute', left: 80, top: 26, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>{item.purity}</div>
-                  {/* W: and weight on same line */}
-                  <div style={{ position: 'absolute', left: 80, top: 52, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black', whiteSpace: 'nowrap' }}>W:{item.gross_wt || 0}g</div>
-                  <QRCodeSVG value={item.barcode || item.huid || 'SMG'} size={52} style={{ position: 'absolute', left: 0, top: 52 }} />
+                  <div style={{ position: 'absolute', left: 0, top: 0, fontSize: '16px', fontWeight: 'bold', lineHeight: '18px', color: 'black' }}>
+                    SMG {item.category} {item.purity}
+                  </div>
+                  <div style={{ position: 'absolute', left: 0, top: 18, fontSize: '14px', fontWeight: 'bold', color: 'black', lineHeight: '16px' }}>
+                    W:{item.gross_wt || 0}g S:{item.stone_wt || 0}g N:{item.net_wt || 0}g
+                  </div>
+                  <div style={{ position: 'absolute', left: 0, top: 34 }}>
+                    <Barcode value={item.barcode || item.huid || '0000'} height={20} width={1} displayValue={true} fontSize={12} margin={0} />
+                  </div>
+                  {item.vendor_name && (
+                    <div style={{ position: 'absolute', left: 220, top: 0, fontSize: 14, fontWeight: 'bold', fontFamily: 'sans-serif', color: 'black', transform: 'rotate(-90deg)', transformOrigin: 'top left' }}>
+                      {item.vendor_name.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
