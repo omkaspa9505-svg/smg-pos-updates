@@ -59,37 +59,37 @@ export default function Dashboard() {
   }
 
   const handleSaveRates = async () => {
-    const toSave: any = { date }
-    let hasOne = false
-    let hasError = false
+    const g24 = Number(rates.gold_24k) || 0
+    const g22 = Number(rates.gold_22k) || 0
+    const s999 = Number(rates.silver_999) || 0
 
-    Object.keys(rates).forEach(k => {
-      const val = (rates as any)[k]
-      if (val.trim() !== '') {
-        const num = Number(val)
-        if (isNaN(num) || num <= 0) hasError = true
-        toSave[k] = num
-        hasOne = true
-      } else {
-        toSave[k] = null
-      }
-    })
-
-    if (hasError) {
-      toast.error('Any entered rate must be greater than zero.')
+    if (g24 <= 0 && g22 <= 0 && s999 <= 0) {
+      toast.error('Please enter at least one base rate (> 0) to save.')
       return
     }
 
-    if (!hasOne) {
-      toast.error('Please enter at least one rate to save.')
-      return
+    const toSave: any = { 
+      date,
+      gold_24k: g24 || null,
+      gold_22k: g22 || null,
+      silver_999: s999 || null,
+      
+      gold_20k: g24 ? Math.round(g24 * (20/24)) : null,
+      gold_18k: g24 ? Math.round(g24 * 0.75) : null,
+      gold_14k: g24 ? Math.round(g24 * 0.583) : null,
+      gold_13k: g24 ? Math.round(g24 * (13/24)) : null,
+      
+      silver_99_9: s999 || null,
+      silver_92_5: s999 ? Math.round(s999 * 0.925) : null,
+      silver_rs: s999 ? Math.round(s999 * 0.65) : null,
     }
 
     if ((window as any).api) {
       try {
         const success = await (window as any).api.saveRates(toSave)
         if (success) {
-          toast.success('Board rates updated successfully!')
+          toast.success('Board rates auto-calculated and saved successfully!')
+          loadRates(date) // Reload to get calculated values in state
         } else {
           toast.error('Failed to save board rates.')
         }
@@ -151,24 +151,29 @@ export default function Dashboard() {
           <div className="overflow-y-auto flex-1 pr-2 space-y-4 custom-scrollbar">
             <div>
               <h3 className="text-sm font-bold text-amber-600 mb-2 border-b border-amber-100 pb-1">Gold Rates (per g)</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {numericInput('gold_24k', '24k')}
-                {numericInput('gold_22k', '22k')}
-                {numericInput('gold_20k', '20k')}
-                {numericInput('gold_18k', '18k')}
-                {numericInput('gold_14k', '14k')}
-                {numericInput('gold_13k', '13k')}
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                {numericInput('gold_24k', '24k (Base)')}
+                {numericInput('gold_22k', '22k (Base)')}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-100">
+                <div className="flex justify-between"><span>20k:</span> <span>{rates.gold_20k || '-'}</span></div>
+                <div className="flex justify-between"><span>18k:</span> <span>{rates.gold_18k || '-'}</span></div>
+                <div className="flex justify-between"><span>14k:</span> <span>{rates.gold_14k || '-'}</span></div>
+                <div className="flex justify-between"><span>13k:</span> <span>{rates.gold_13k || '-'}</span></div>
               </div>
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-500 mb-2 border-b border-slate-100 pb-1">Silver Rates (per g)</h3>
-              <div className="grid grid-cols-2 gap-3">
-                {numericInput('silver_999', '999')}
-                {numericInput('silver_99_9', '99.9')}
-                {numericInput('silver_92_5', '92.5')}
-                {numericInput('silver_rs', 'RS')}
+              <div className="grid grid-cols-1 gap-3 mb-3">
+                {numericInput('silver_999', '999 Pure Silver (Base)')}
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-200">
+                <div className="flex justify-between"><span>99.9:</span> <span>{rates.silver_99_9 || '-'}</span></div>
+                <div className="flex justify-between"><span>92.5:</span> <span>{rates.silver_92_5 || '-'}</span></div>
+                <div className="flex justify-between"><span>RS:</span> <span>{rates.silver_rs || '-'}</span></div>
               </div>
             </div>
+            <p className="text-[10px] text-gray-400 leading-tight">Note: Lower purities are automatically calculated and updated on save based on the Base rates.</p>
           </div>
           
           <button
