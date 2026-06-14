@@ -383,21 +383,15 @@ const SPREADSHEET_ID = '1YVLSfUkp3kZTh-_3wZS_S5GOgQauGDqtyQOVMYzA1vY';
 
 // syncToGoogleSheets: fills data into the first empty placeholder row in the sheet
 // skipColA=true means we write starting from column B, leaving column A's formula intact
+const GOOGLE_CREDENTIALS = JSON.parse(Buffer.from("ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAid2Vic2l0ZXMtaW5kaWEiLAogICJwcml2YXRlX2tleV9pZCI6ICIyNjVhNTUwZWI4N2MxNzVmNWJkMWU2YjJmYzE4MDUzNmRiNjZhYzhmIiwKICAicHJpdmF0ZV9rZXkiOiAiLS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tXG5NSUlFdmdJQkFEQU5CZ2txaGtpRzl3MEJBUUVGQUFTQ0JLZ3dnZ1NrQWdFQUFvSUJBUUN3N29QVEZhMkNXZSswXG4vdW9RY3BOV1BUZlVVd3dlM1ZzS3ZsVXJqVWUvbG1iRkxzS0ZqbmpEVy9STWNrZE0vS1dFaDhIckdSOG9HRVo4XG50OWFTaCt0bXhqb3FDVXlLbFphdDdnakFHUGRHM2dTOERmdGtmR095YWFUUXViZGNLaE42NHFLU0MvbVQ4My9lXG5iTUw4THUwM2VtOERmNmMxcFRDSFFINEpwakRQUFNrcVF4amxMTFRDQVhraGdub2h2cnNUTkhiK3N0M1NCTC80XG51MkNQMVRaOVU4Q1ZXOTRLN25zTDJYR2RiREkvMUhlTFRtb2NwckRQMm5KKzNMMlc2U2R3VitaaTlxMTN4ZWZ4XG5KUTg1SWpLOEZJb0p6aS9Ca3RzTUY4MFpkUjVmbEwzdDM1WHh4U3ErZk82emgvVkgwTUtxbUprTVBFYmFUcWdOXG5PUllLWXRMTEFnTUJBQUVDZ2dFQUFzVEFzRkZqQlNxbUd4VndFVERSeUdRdDF2Y3p0ZG50M2tXckxJTEo4Q0FJXG4zS1lHS2pQWUJPcVA4SkJMT0ZPdHZWeW9kcWJPZTRDaHZicmNzeTlJU2pQbzNoYUdLWmI4cEIwWTZ2U1pEZlZVXG5hcUxuWDZPb3BiYU1leTJreGw3c0xoeVV3YWRKVVB6YTc5NlEwSVJsZHR4R0YyNXNiZVQzVk81MzZtdTgwTWxVXG5CakVpVnFjRnNzQmFCSTBiS0p3TnF1U1FLMXd5aThLTHhZaUxoOXRKMlZFVzM5cytXQnVxK1g5RlhKOHA4d1U1XG5sSUFSWkhXdExDSm5wbTIvOU5OcWxkRDNVWmFGb0FIWk1hdkpWRXlwZnJzM252Q3RCTWw1ck4wYTRUQUs4Sk1KXG56Nk01YTlxK3Fwd1BGaG1ITk0raU1JOFRwMFpvZzNuYUQrTElZZ05MelFLQmdRRHFLT01PZ2V2Zmp1OFA1NjJMXG5wK2trbjhaY2JRcEdOdEovUXpnWVNuN0VFM1BKbGxDbUpNbmlCNXlGRmVjQlU2YmJ1OFBYbXpKNE9wakU5WW5TXG5DQU44WHpDa3p1aHgxSU5FZlNxbVNPUzhBeHRCSTV4TDZnLzVmTEwxcWpwb1NFQU1kQWJlTUpXSldzQU1qK1gxXG5DYmpPbUtraWVjQ2cvbWR6TCtPc3BpRElOd0tCZ1FEQmJ5eTdybTJOL0VQRmZYT2xoMkx2dFdhWlp3RWNiQjRHXG5SbGkwSXk3VUhvQXVyYUl5Y2E5L296R1p6V2xXMGl3MTUxZ3NSZ1laYlF2UGh6b2NOODU1ZE42VU1aMVlWcUVUXG5LTmZWNGVObHBqSzgwS2I2a1YyUjk0dlpPOUwwMkUyN2F0d1N1Z2V2Qi9EaUdYNTUrcnQydEtGbVFoWFpqK3hRXG5nOER2M3VpWURRS0JnR09sVEtLUzFUNklnK0UvMVJGMlBmZXc2bWZRbXl1d0RybkxjQ2FlSlAzcHpUOCs4VWtTXG5wTHJFUkc0NkdOanVzVFlXM0V0M0p1NFUrWWZ2ZVZ2Z3Z5TUJHeUUzVDZHSkx1ZEpZSW5zd1RIbEhJY0cwVzlZXG54cjJEdkdCZ3RZUkZJc1JwNTdaTDlJYkVFTEFIMkhNRFZSck55a1A2amVlMCsyOEFOU0gyZkVMWEFvR0JBSk5qXG45QkQ2UXc0cWh6Vm5kd1JOR2cwUEN5T2VnaEUzTE5XWktxUHdIeEdRUUJuUlFrTHZyMHN4Zld6MVFPdmY3OElQXG5DbmVKejhIMS9rYmVnbC9ZQWlNMzh4VzJqRzh3YTBIZklEOGdCUmFDUWl6dlRCeW5RVVlrK3RISExPSldJenpJXG5tdkpGLys3VnZTMTdRWTBPaVdOVkZacUdob0dsa2VwenlrSzhkanpOQW9HQkFNSlZTY1RDMlZ6ZzV2NzE2SmdRXG5aVUpwSVlmS0F6ZHhhVlBVQm90WWkrU20wdjNTbmFBNUN6OUw2M1FCOGovWnJBMFhsRWM5U3lOZkVHcjJLTkhSXG5JVlB5NGw5SDdETzVnSXZPQTVJeFdpKzg3TDRpUGxZUEpVaU9CZFQyenZGQWVnNFNLc2w2dUFrU01menpRcVh3XG4wK05zRUV3MEpmSzdML0t1MHNtMGpjRDVcbi0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS1cbiIsCiAgImNsaWVudF9lbWFpbCI6ICJzbWctbjhuQHdlYnNpdGVzLWluZGlhLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwKICAiY2xpZW50X2lkIjogIjExMzg3MjQ3NTEzNzc4MzQzNzczMCIsCiAgImF1dGhfdXJpIjogImh0dHBzOi8vYWNjb3VudHMuZ29vZ2xlLmNvbS9vL29hdXRoMi9hdXRoIiwKICAidG9rZW5fdXJpIjogImh0dHBzOi8vb2F1dGgyLmdvb2dsZWFwaXMuY29tL3Rva2VuIiwKICAiYXV0aF9wcm92aWRlcl94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL29hdXRoMi92MS9jZXJ0cyIsCiAgImNsaWVudF94NTA5X2NlcnRfdXJsIjogImh0dHBzOi8vd3d3Lmdvb2dsZWFwaXMuY29tL3JvYm90L3YxL21ldGFkYXRhL3g1MDkvc21nLW44biU0MHdlYnNpdGVzLWluZGlhLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwKICAidW5pdmVyc2VfZG9tYWluIjogImdvb2dsZWFwaXMuY29tIgp9Cg==", 'base64').toString('utf8'));
+
 async function syncToGoogleSheets(range: string, values: any[][], skipColA = false) {
   try {
-    const credentialsPath = app.isPackaged 
-      ? join(process.resourcesPath, 'credentials.json') 
-      : join(__dirname, '../../credentials.json')
-
-    if (!fs.existsSync(credentialsPath)) {
-      console.error('Google Sheets Sync Failed: credentials.json not found at', credentialsPath)
-      return;
-    }
-    
     const auth = new google.auth.GoogleAuth({
-      keyFile: credentialsPath,
+      credentials: GOOGLE_CREDENTIALS,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
+
     
     const sheets = google.sheets({ version: 'v4', auth });
     
@@ -413,8 +407,10 @@ async function syncToGoogleSheets(range: string, values: any[][], skipColA = fal
     const rows = getRes.data.values || [];
     let emptyRowIndex = rows.length + 1; // default: append after last row
     
-    // Find the first row after the header section where column B (name/desc) is empty
-    for (let i = 4; i < rows.length; i++) {
+    // For INVENTORY DATA and SALES DATA, the header is only row 1.
+    // For SCHEME DATA, there are multiple header rows.
+    // By checking from i = 1, we handle all sheets robustly as long as the data itself starts properly.
+    for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       const colBVal = row && row[1] !== undefined ? String(row[1]).trim() : '';
       if (colBVal === '') {
@@ -441,14 +437,8 @@ async function syncToGoogleSheets(range: string, values: any[][], skipColA = fal
 
 async function updateGoogleSheetRow(sheetName: string, searchCol: string, searchVal: string, updateColStart: string, updateColEnd: string, values: any[][]) {
   try {
-    const credentialsPath = app.isPackaged 
-      ? join(process.resourcesPath, 'credentials.json') 
-      : join(__dirname, '../../credentials.json')
-
-    if (!fs.existsSync(credentialsPath)) return false;
-    
     const auth = new google.auth.GoogleAuth({
-      keyFile: credentialsPath,
+      credentials: GOOGLE_CREDENTIALS,
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     
